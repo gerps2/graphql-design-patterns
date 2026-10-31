@@ -1,4 +1,4 @@
-.PHONY: run build medir test test-regra clean
+.PHONY: run build medir test test-regra test-handlers clean
 
 AULA ?= 03
 
@@ -22,6 +22,9 @@ medir:
 
 test:
 	dotnet test Corretora.sln
+
+test-handlers:
+	dotnet test tests/Corretora.UnitTests --logger "console;verbosity=normal"
 
 test-regra:
 	dotnet test tests/Corretora.IntegrationTests --filter RegraDeLeitura --logger "console;verbosity=normal"

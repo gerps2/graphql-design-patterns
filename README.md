@@ -7,6 +7,7 @@ make run      sobe a API em http://localhost:5000
 make build    compila a solução
 make medir    mede a aula atual com o k6 e abre o relatório
 make test     roda os testes
+make test-handlers  roda só os testes de handler, sem subir a API
 make clean    limpa os artefatos
 ```
 
