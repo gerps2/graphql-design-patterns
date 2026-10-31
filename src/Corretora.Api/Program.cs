@@ -11,6 +11,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddSingleton<IBanco, BancoEmMemoria>();
+builder.Services.AddQueries(Assembly.GetExecutingAssembly());
 
 builder.Services
     .AddGraphQLServer()
