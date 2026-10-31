@@ -1,4 +1,5 @@
 using System.Reflection;
+using Corretora.Api.Common.Decorators;
 
 namespace Corretora.Api.Common;
 
@@ -28,7 +29,13 @@ public static class QueriesExtensions
             .Where(h => h.contrato.IsGenericType && h.contrato.GetGenericTypeDefinition() == typeof(IQueryHandler<,>));
 
         foreach (var (tipo, contrato) in handlers)
-            services.AddScoped(contrato, tipo);
+        {
+            var decorator = typeof(MedicaoDeQuery<,>).MakeGenericType(contrato.GetGenericArguments());
+
+            services.AddScoped(tipo);
+            services.AddScoped(contrato, provedor =>
+                ActivatorUtilities.CreateInstance(provedor, decorator, provedor.GetRequiredService(tipo)));
+        }
 
         return services.AddScoped<IMediator, Mediator>();
     }
