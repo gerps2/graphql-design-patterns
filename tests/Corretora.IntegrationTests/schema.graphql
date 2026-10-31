@@ -3,8 +3,8 @@ schema {
 }
 
 type Query {
-  usuario(id: Int!): Usuario
-  usuarios: [Usuario!]!
+  usuario(id: Int!): Usuario @cost(weight: "10")
+  usuarios: [Usuario!]! @cost(weight: "10")
 }
 
 type Endereco {
@@ -35,8 +35,8 @@ type Transacao {
 
 type Usuario {
   carteira: [PosicaoNaCarteira!]! @cost(weight: "10")
-  rentabilidade: [PosicaoRentabilidade!]!
-  transacoes: [Transacao!]!
+  rentabilidade: [PosicaoRentabilidade!]! @cost(weight: "10")
+  transacoes: [Transacao!]! @cost(weight: "10")
   id: Int!
   nome: String!
   email: String!
