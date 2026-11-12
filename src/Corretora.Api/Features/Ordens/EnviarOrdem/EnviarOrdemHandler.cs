@@ -10,10 +10,11 @@ public sealed class EnviarOrdemHandler(CorretoraDbContext db) : ICommandHandler<
     {
         var conta = await db.Contas.SingleAsync(c => c.UsuarioId == command.UsuarioId, ct);
         conta.Debitar(command.Quantidade * command.Preco);
-        await db.SaveChangesAsync(ct);
 
         var ordem = Ordem.Criar(command.UsuarioId, command.Ativo, command.Quantidade, command.Preco);
         db.Ordens.Add(ordem);
+
+        // Uma gravação só: o débito e a ordem entram juntos, ou nenhum entra.
         await db.SaveChangesAsync(ct);
 
         return OrdemOutput.De(ordem);

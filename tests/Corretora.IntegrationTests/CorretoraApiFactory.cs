@@ -23,6 +23,15 @@ public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsync
         await scope.ServiceProvider.GetRequiredService<CorretoraDbContext>().Database.MigrateAsync();
     }
 
+    // Cada teste que mexe no saldo começa de um valor conhecido.
+    public async Task RedefinirSaldoAsync(int usuarioId, decimal saldo)
+    {
+        using var scope = Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<CorretoraDbContext>().Contas
+            .Where(c => c.UsuarioId == usuarioId)
+            .ExecuteUpdateAsync(c => c.SetProperty(x => x.Saldo, saldo));
+    }
+
     async Task IAsyncLifetime.DisposeAsync()
     {
         await base.DisposeAsync();
