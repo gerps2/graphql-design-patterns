@@ -6,7 +6,7 @@ namespace Corretora.Api.Features.Carteira.ObterCarteira;
 public static partial class ObterCarteiraResolver
 {
     public static Task<PosicaoNaCarteiraOutput[]> GetCarteira(
-        [Parent] UsuarioOutput usuario,
+        [Parent(requires: nameof(UsuarioOutput.Id))] UsuarioOutput usuario,
         ICarteiraByUsuarioIdDataLoader carteiraByUsuarioId,
         CancellationToken ct) =>
         carteiraByUsuarioId.LoadRequiredAsync(usuario.Id, ct);

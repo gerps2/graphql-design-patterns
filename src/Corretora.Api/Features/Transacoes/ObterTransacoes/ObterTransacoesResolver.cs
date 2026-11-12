@@ -6,7 +6,7 @@ namespace Corretora.Api.Features.Transacoes.ObterTransacoes;
 public static partial class ObterTransacoesResolver
 {
     public static Task<TransacaoOutput[]> GetTransacoes(
-        [Parent] UsuarioOutput usuario,
+        [Parent(requires: nameof(UsuarioOutput.Id))] UsuarioOutput usuario,
         ITransacoesByUsuarioIdDataLoader transacoesByUsuarioId,
         CancellationToken ct) =>
         transacoesByUsuarioId.LoadRequiredAsync(usuario.Id, ct);

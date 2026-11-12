@@ -3,6 +3,7 @@ using Corretora.Api.Features.Ordens;
 using Corretora.Api.Features.Rentabilidade;
 using Corretora.Api.Features.Transacoes;
 using Corretora.Api.Features.Usuarios;
+using GreenDonut.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Corretora.Api.Database;
@@ -10,8 +11,9 @@ namespace Corretora.Api.Database;
 // Leitura sem rastreamento: o EF Core não guarda cópia do que só vai ser lido.
 public sealed class BancoPostgres(CorretoraDbContext db) : IBanco
 {
-    public Task<List<Usuario>> BuscarUsuarios(CancellationToken ct) =>
-        db.Usuarios.AsNoTracking().OrderBy(u => u.Id).ToListAsync(ct);
+    // Só as colunas dos campos pedidos: a Projecao converte para o Output e o With põe por cima a projeção do QueryContext.
+    public Task<List<UsuarioOutput>> BuscarUsuarios(QueryContext<UsuarioOutput> campos, CancellationToken ct) =>
+        db.Usuarios.AsNoTracking().OrderBy(u => u.Id).Select(UsuarioOutput.Projecao).With(campos).ToListAsync(ct);
 
     public Task<List<Posicao>> BuscarPosicoes(IReadOnlyList<int> usuarioIds, CancellationToken ct) =>
         db.Posicoes.AsNoTracking().Where(p => usuarioIds.Contains(p.UsuarioId)).ToListAsync(ct);
