@@ -1,4 +1,4 @@
-# Banco da corretora para desenvolvimento local.
+# Banco e cache da corretora para desenvolvimento local.
 # A senha abaixo só vale nesta máquina. Em produção, ela vem de um cofre de segredos.
 name: corretora
 
@@ -15,6 +15,17 @@ services:
       - dados:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U corretora -d corretora"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # O L2 do HybridCache. Uso interno, coberto pela licença do Redis 8 (RSALv2/SSPLv1/AGPLv3).
+  redis:
+    image: docker.io/library/redis:8-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 2s
       timeout: 3s
       retries: 30

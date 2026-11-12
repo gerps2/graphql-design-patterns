@@ -1,29 +1,34 @@
 using System.Collections.Concurrent;
+using Corretora.Api.Common.Caching;
 using Corretora.Api.Database;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 
 namespace Corretora.IntegrationTests;
 
-// Sobe um Postgres descartável no Docker e a API apontando para ele. Não depende do make up.
+// Sobe um Postgres e um Redis descartáveis no Docker e a API apontando para eles. Não depende do make up.
 public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18-alpine").Build();
+    private readonly RedisContainer _redis = new RedisBuilder("redis:8-alpine").Build();
     private readonly ConcurrentDictionary<string, WebApplicationFactory<Program>> _variacoes = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("ConnectionStrings:Corretora", _postgres.GetConnectionString());
+        builder.UseSetting("ConnectionStrings:Redis", _redis.GetConnectionString());
         // O SQL no terminal é para a aula. Nos testes, quem conta é o header do contador.
         builder.UseSetting("Aula:MostrarSql", "false");
     }
 
     public async Task InitializeAsync()
     {
-        await _postgres.StartAsync();
+        await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
 
         using var scope = Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<CorretoraDbContext>().Database.MigrateAsync();
@@ -50,13 +55,14 @@ public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsync
         return (saldo, ordens);
     }
 
-    // Cada teste que mexe no saldo começa de um valor conhecido.
+    // Cada teste que mexe no saldo começa de um valor conhecido, no banco e no cache (o Redis é de todos os testes).
     public async Task RedefinirSaldoAsync(int usuarioId, decimal saldo)
     {
         using var scope = Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<CorretoraDbContext>().Contas
             .Where(c => c.UsuarioId == usuarioId)
             .ExecuteUpdateAsync(c => c.SetProperty(x => x.Saldo, saldo));
+        await scope.ServiceProvider.GetRequiredService<HybridCache>().RemoveByTagAsync(CacheTags.Usuario(usuarioId));
     }
 
     async Task IAsyncLifetime.DisposeAsync()
@@ -66,6 +72,7 @@ public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsync
 
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
+        await _redis.DisposeAsync();
     }
 }
 

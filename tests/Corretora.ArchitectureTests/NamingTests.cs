@@ -54,7 +54,7 @@ public class NamingTests : BaseTest
         var result = decorators.Should().ResideInNamespace("Corretora.Api.Common.Decorators").GetResult();
 
         // Assert
-        decorators.GetTypes().Select(t => t.Name).Should().Contain(["LoggingDecorator", "ValidationDecorator"]);
+        decorators.GetTypes().Select(t => t.Name).Should().Contain(["LoggingDecorator", "ValidationDecorator", "CachingDecorator", "CacheInvalidationDecorator"]);
         result.IsSuccessful.Should().BeTrue(Falhas(result));
     }
 

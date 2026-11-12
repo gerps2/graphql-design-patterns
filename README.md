@@ -1,7 +1,7 @@
 Aplicação da disciplina GraphQL e Design Patterns (FIAP PosTech).
 
 ```
-make up         sobe o Postgres no Docker (porta 5433)
+make up         sobe o Postgres (porta 5433) e o Redis (porta 6379) no Docker
 make migrar     cria as tabelas e a carga inicial
 make run        sobe a API em http://localhost:5000 (ESTRATEGIA=SemTrava|Pessimista|Otimista)
 make run-dapper sobe a API gravando com Dapper no lugar do EF Core
@@ -9,7 +9,7 @@ make falha      sobe a API com uma falha ao gravar a ordem (só para a aula)
 make medir      mede a tela inicial com o k6 (consultas ao banco e tempo; sobe a API sozinho) e abre o relatório
                 PASSOS="0 atual" compara o passo 0 da Aula 5 com o código atual; AULA=04 mede a escrita da Aula 4
 make build      compila a solução
-make test       roda todos os testes (o Postgres dos testes sobe sozinho, com Testcontainers)
+make test       roda todos os testes (o Postgres e o Redis dos testes sobem sozinhos, com Testcontainers)
 make test-unit  roda só os testes de unidade, sem subir a API
 make test-arch  roda só os testes de arquitetura (as regras do slice)
 make test-ordem roda só os testes da mutation enviarOrdem
@@ -57,4 +57,8 @@ export TESTCONTAINERS_RYUK_DISABLED=true
 export TESTCONTAINERS_HOST_OVERRIDE=<ip da máquina WSL do Podman>
 ```
 
-Se a porta 5433 não responder em `localhost`, aponte a API para o mesmo IP com `export ConnectionStrings__Corretora="Host=<ip>;Port=5433;Database=corretora;Username=corretora;Password=corretora_dev"`.
+Se a porta 5433 não responder em `localhost`, aponte a API para o mesmo IP com `export ConnectionStrings__Corretora="Host=<ip>;Port=5433;Database=corretora;Username=corretora;Password=corretora_dev"`. O Redis segue a mesma regra: `export ConnectionStrings__Redis="<ip>:6379"`.
+
+## Cache do saldo
+
+A partir da Aula 5, o saldo fica no HybridCache: L1 na memória da API e L2 no Redis do `make up`. Uma ordem apaga do cache tudo o que tem a etiqueta do usuário (`usuario:<id>`). Sem `ConnectionStrings:Redis`, o cache continua só na memória.

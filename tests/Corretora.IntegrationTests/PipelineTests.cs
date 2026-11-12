@@ -47,7 +47,7 @@ public class PipelineTests(CorretoraApiFactory api)
             """);
 
         // Assert
-        Camadas(logs).Should().Equal("Logging", "Validation", "Logging");
+        Camadas(logs).Should().Equal("Logging", "Validation", "CacheInvalidation", "Logging");
     }
 
     [Fact]
@@ -63,5 +63,30 @@ public class PipelineTests(CorretoraApiFactory api)
         var comecos = logs.GetSnapshot().Where(r => r.Category == "Pipeline" && r.Message.EndsWith("começou"))
             .Select(r => r.Message.Split(' ')[1]).ToList();
         comecos.Should().BeEquivalentTo(["ObterUsuariosQuery", "ObterCarteirasQuery", "ObterTransacoesQuery"]);
+    }
+
+    [Fact]
+    public async Task Saldo_DuasVezesEDepoisUmaOrdem_SegundaVemDoCacheETerceiraTrazOSaldoNovoDoBanco()
+    {
+        // Arrange
+        await api.RedefinirSaldoAsync(4, 1000m);
+        var (client, logs) = ClientComLog();
+        const string saldo = "{ usuario(id: 4) { saldoDisponivel } }";
+        static decimal Ler(System.Text.Json.JsonElement json) =>
+            json.GetProperty("data").GetProperty("usuario").GetProperty("saldoDisponivel").GetDecimal();
+
+        // Act
+        var primeira = Ler(await client.PostGraphQLAsync(saldo));
+        var segunda = Ler(await client.PostGraphQLAsync(saldo));
+        await client.PostGraphQLAsync("""
+            mutation { enviarOrdem(input: { usuarioId: 4, ativo: "ITUB4", quantidade: 1, preco: 10 }) { ordem { id } } }
+            """);
+        var terceira = Ler(await client.PostGraphQLAsync(saldo));
+
+        // Assert
+        (primeira, segunda, terceira).Should().Be((1000m, 1000m, 990m));
+        logs.GetSnapshot().Select(r => r.Message).Where(m => m.StartsWith("Cache:"))
+            .Select(m => m.EndsWith("veio do cache") ? "cache" : "banco")
+            .Should().Equal("banco", "cache", "banco");
     }
 }

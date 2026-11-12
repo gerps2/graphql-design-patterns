@@ -31,12 +31,25 @@ builder.Services.AddDbContext<CorretoraDbContext>((services, options) =>
 // As leituras (IBanco) ficam no EF Core com AsNoTracking. A escrita usa o provedor escolhido.
 builder.Services.AddScoped<IBanco, BancoPostgres>();
 builder.Services.AddPersistencia(builder.Configuration);
+// Cache em dois níveis: L1 na memória da API e L2 no Redis, quando houver conexão (ConnectionStrings:Redis).
+// Sem o Redis, o HybridCache continua funcionando só com a memória.
+var redis = builder.Configuration.GetConnectionString("Redis");
+if (!string.IsNullOrEmpty(redis))
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redis;
+        options.InstanceName = "corretora:";
+    });
+builder.Services.AddHybridCache();
 builder.Services.AddMessaging(Assembly.GetExecutingAssembly());
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-// O pipeline do IMediator. Cada Decorate embrulha o que já existe, então o último fica por fora:
-// Logging → Validation → Handler.
+// O pipeline do IMediator. Cada Decorate embrulha o que já existe, então o último fica por fora.
+// Command: Logging → Validation → CacheInvalidation (só o command marcado) → Handler.
+// Query:   Logging → Caching (só age na query com chave) → Handler.
+builder.Services.Decorate(typeof(ICommandHandler<,>), typeof(CacheInvalidationDecorator.CommandHandler<,>));
 builder.Services.Decorate(typeof(ICommandHandler<,>), typeof(ValidationDecorator.CommandHandler<,>));
+builder.Services.Decorate(typeof(IQueryHandler<,>), typeof(CachingDecorator.QueryHandler<,>));
 builder.Services.Decorate(typeof(IQueryHandler<,>), typeof(LoggingDecorator.QueryHandler<,>));
 builder.Services.Decorate(typeof(ICommandHandler<,>), typeof(LoggingDecorator.CommandHandler<,>));
 
