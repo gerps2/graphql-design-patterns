@@ -1,5 +1,6 @@
 using System.Reflection;
 using Corretora.Api.Common.Messaging;
+using FluentValidation;
 
 namespace Corretora.ArchitectureTests;
 
@@ -23,6 +24,22 @@ public class NamingTests : BaseTest
 
         // Assert
         handlers.GetTypes().Should().NotBeEmpty();
+        result.IsSuccessful.Should().BeTrue(Falhas(result));
+    }
+
+    [Fact]
+    public void Validators_NasFeatures_TerminamEmValidator()
+    {
+        // Arrange
+        var validators = Types.InAssembly(ApiAssembly)
+            .That().ResideInNamespace(FeaturesNamespace)
+            .And().Inherit(typeof(AbstractValidator<>));
+
+        // Act
+        var result = validators.Should().HaveNameEndingWith("Validator").GetResult();
+
+        // Assert
+        validators.GetTypes().Should().NotBeEmpty();
         result.IsSuccessful.Should().BeTrue(Falhas(result));
     }
 

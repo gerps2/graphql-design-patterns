@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageReference Include="FluentValidation" Version="12.2.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.2.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="16.7.3" />
     <PackageReference Include="HotChocolate.Types.Analyzers" Version="16.7.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
