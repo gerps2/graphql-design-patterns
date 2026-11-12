@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Hosting;
-
 namespace Corretora.IntegrationTests.Features.Ordens.EnviarOrdem;
 
 [Collection(nameof(ApiCollection))]
@@ -12,8 +10,7 @@ public class EnviarOrdemConsistenciaTests(CorretoraApiFactory api)
     public async Task EnviarOrdem_FalhaAoGravarAOrdem_NaoDeixaDebitoSemOrdem()
     {
         // Arrange
-        var apiComFalha = api.WithWebHostBuilder(builder => builder.UseSetting("Aula:FalharAoGravarOrdem", "true"));
-        var client = apiComFalha.CreateClient();
+        var client = api.Com(("Aula:FalharAoGravarOrdem", "true")).CreateClient();
         var antes = await api.LerSaldoEOrdensAsync(1);
 
         // Act

@@ -6,8 +6,8 @@ using Corretora.Api.Features.Rentabilidade;
 using Corretora.Api.Features.Transacoes;
 using Corretora.Api.Features.Usuarios;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace Corretora.Api.Database;
 
@@ -30,8 +30,21 @@ public sealed class CorretoraDbContext(
 
     public EstrategiaDeConcorrencia Estrategia => concorrencia.Value.Estrategia;
 
-    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default) =>
-        Database.BeginTransactionAsync(ct);
+    async Task<ITransaction> IUnitOfWork.BeginTransactionAsync(CancellationToken ct) =>
+        new EfTransaction(await Database.BeginTransactionAsync(ct));
+
+    // Quem grava pelo IUnitOfWork recebe o índice único violado numa exceção que não é do EF Core.
+    async Task<int> IUnitOfWork.SaveChangesAsync(CancellationToken ct)
+    {
+        try
+        {
+            return await SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            throw new UniqueConstraintViolationException(ex);
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

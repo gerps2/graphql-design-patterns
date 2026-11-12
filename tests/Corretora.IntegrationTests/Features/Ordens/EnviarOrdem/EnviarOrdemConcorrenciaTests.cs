@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Corretora.IntegrationTests.Features.Ordens.EnviarOrdem;
 
@@ -11,10 +10,10 @@ public class EnviarOrdemConcorrenciaTests(CorretoraApiFactory api)
     private const string Ordem =
         """mutation { enviarOrdem(input: { usuarioId: 4, ativo: "ITUB4", quantidade: 1, preco: 100 }) { ordem { id } } }""";
 
-    private async Task<(int Aceitas, decimal SaldoFinal, int Ordens)> Enviar40(string estrategia)
+    private async Task<(int Aceitas, decimal SaldoFinal, int Ordens)> Enviar40(string provedor, string estrategia)
     {
         await api.RedefinirSaldoAsync(Usuario, 1000m);
-        var client = api.WithWebHostBuilder(builder => builder.UseSetting("Concorrencia:Estrategia", estrategia)).CreateClient();
+        var client = api.Com(("Persistencia:Provedor", provedor), ("Concorrencia:Estrategia", estrategia)).CreateClient();
         var antes = await api.LerSaldoEOrdensAsync(Usuario);
 
         var respostas = await Task.WhenAll(Enumerable.Range(0, 40).Select(_ => client.PostGraphQLAsync(Ordem)));
@@ -24,11 +23,13 @@ public class EnviarOrdemConcorrenciaTests(CorretoraApiFactory api)
         return (aceitas, depois.Saldo, depois.Ordens - antes.Ordens);
     }
 
-    [Fact]
-    public async Task EnviarOrdem_Pessimista_AceitaExatamenteAsDezQueCabemNoSaldo()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task EnviarOrdem_Pessimista_AceitaExatamenteAsDezQueCabemNoSaldo(string provedor)
     {
         // Arrange e Act
-        var (aceitas, saldoFinal, ordens) = await Enviar40("Pessimista");
+        var (aceitas, saldoFinal, ordens) = await Enviar40(provedor, "Pessimista");
 
         // Assert
         aceitas.Should().Be(10);
@@ -36,11 +37,13 @@ public class EnviarOrdemConcorrenciaTests(CorretoraApiFactory api)
         saldoFinal.Should().Be(0m);
     }
 
-    [Fact]
-    public async Task EnviarOrdem_Otimista_NuncaPerdeDebitoNemPassaDoSaldo()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task EnviarOrdem_Otimista_NuncaPerdeDebitoNemPassaDoSaldo(string provedor)
     {
         // Arrange e Act
-        var (aceitas, saldoFinal, ordens) = await Enviar40("Otimista");
+        var (aceitas, saldoFinal, ordens) = await Enviar40(provedor, "Otimista");
 
         // Assert
         aceitas.Should().BeInRange(1, 10);
@@ -48,11 +51,13 @@ public class EnviarOrdemConcorrenciaTests(CorretoraApiFactory api)
         saldoFinal.Should().Be(1000m - 100m * aceitas, "cada ordem aceita debitou de verdade");
     }
 
-    [Fact]
-    public async Task EnviarOrdem_SemTrava_PerdeDebitos()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task EnviarOrdem_SemTrava_PerdeDebitos(string provedor)
     {
         // Arrange e Act
-        var (aceitas, saldoFinal, ordens) = await Enviar40("SemTrava");
+        var (aceitas, saldoFinal, ordens) = await Enviar40(provedor, "SemTrava");
 
         // Assert
         ordens.Should().Be(aceitas);

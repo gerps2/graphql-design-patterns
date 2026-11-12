@@ -1,8 +1,6 @@
 using Corretora.Api.Common.Data;
 using Corretora.Api.Common.Messaging;
-using Corretora.Api.Database;
 using Corretora.Api.Features.Contas;
-using Microsoft.EntityFrameworkCore;
 
 namespace Corretora.Api.Features.Usuarios.CriarUsuario;
 
@@ -28,7 +26,7 @@ public sealed class CriarUsuarioHandler(
         {
             await unitOfWork.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException ex) when (ex.IsUniqueViolation())
+        catch (UniqueConstraintViolationException)
         {
             throw new EmailJaCadastradoException(command.Email);
         }

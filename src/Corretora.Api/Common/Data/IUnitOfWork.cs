@@ -1,12 +1,12 @@
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Corretora.Api.Common.Data;
 
 // Junta as mudanças de um caso de uso e grava tudo de uma vez.
-// A transação do banco é IDbContextTransaction: "Transacao" no código é o extrato da Aula 3.
+// Duas implementações: o CorretoraDbContext (EF Core) e o DapperUnitOfWork (SQL escrito à mão).
 public interface IUnitOfWork
 {
+    // Lança UniqueConstraintViolationException quando um índice único recusa a gravação.
+    // No conflito de concorrência, cada provedor lança a sua exceção e nada é gravado.
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 
-    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
+    Task<ITransaction> BeginTransactionAsync(CancellationToken ct = default);
 }

@@ -21,25 +21,29 @@ public class CriarUsuarioTests(CorretoraApiFactory api)
         return await scope.ServiceProvider.GetRequiredService<CorretoraDbContext>().Usuarios.CountAsync(u => u.Email == email);
     }
 
-    [Fact]
-    public async Task CriarUsuario_EmailNovo_CriaOUsuarioComContaZerada()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task CriarUsuario_EmailNovo_CriaOUsuarioComContaZerada(string provedor)
     {
         // Arrange
-        var client = api.CreateClient();
+        var client = api.ClientCom(provedor);
 
         // Act
-        var json = await client.PostGraphQLAsync(Criar($"fabio.ef@corretora.com"));
+        var json = await client.PostGraphQLAsync(Criar($"fabio.{provedor}@corretora.com"));
 
         // Assert
         var usuario = json.GetProperty("data").GetProperty("criarUsuario").GetProperty("usuario");
         usuario.GetProperty("saldoDisponivel").GetDecimal().Should().Be(0m);
     }
 
-    [Fact]
-    public async Task CriarUsuario_EmailJaCadastrado_RetornaErroGenericoSemCriar()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task CriarUsuario_EmailJaCadastrado_RetornaErroGenericoSemCriar(string provedor)
     {
         // Arrange
-        var client = api.CreateClient();
+        var client = api.ClientCom(provedor);
 
         // Act
         var json = await client.PostGraphQLAsync(Criar("ana@corretora.com"));
@@ -50,12 +54,14 @@ public class CriarUsuarioTests(CorretoraApiFactory api)
         (await ContarUsuarios("ana@corretora.com")).Should().Be(1);
     }
 
-    [Fact]
-    public async Task CriarUsuario_MesmoEmailAoMesmoTempo_SoUmECriado()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task CriarUsuario_MesmoEmailAoMesmoTempo_SoUmECriado(string provedor)
     {
         // Arrange
-        var client = api.CreateClient();
-        var email = $"gabi.ef@corretora.com";
+        var client = api.ClientCom(provedor);
+        var email = $"gabi.{provedor}@corretora.com";
 
         // Act
         var respostas = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => client.PostGraphQLAsync(Criar(email))));

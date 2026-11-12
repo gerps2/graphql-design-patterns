@@ -3,7 +3,6 @@ using Corretora.Api.Common.Data;
 using Corretora.Api.Features.Contas;
 using Corretora.Api.Features.Ordens;
 using Corretora.Api.Features.Ordens.EnviarOrdem;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Corretora.UnitTests.Features.Ordens.EnviarOrdem;
 
@@ -12,7 +11,7 @@ public class EnviarOrdemHandlerTests
     private readonly IContaRepository _contas = Substitute.For<IContaRepository>();
     private readonly IOrdemRepository _ordens = Substitute.For<IOrdemRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
-    private readonly IDbContextTransaction _transaction = Substitute.For<IDbContextTransaction>();
+    private readonly ITransaction _transaction = Substitute.For<ITransaction>();
     private readonly EnviarOrdemHandler _handler;
 
     public EnviarOrdemHandlerTests()

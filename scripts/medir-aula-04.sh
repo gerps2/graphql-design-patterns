@@ -3,8 +3,10 @@
 # Mede a consistência da escrita em quatro cenários. Cada cenário sobe a API com uma configuração,
 # zera o saldo por SQL, roda o k6 e derruba a API. No fim, o k6 junta tudo em relatorio-aula-04.html.
 # Precisa do Postgres de pé e migrado (make up, make migrar). Roda no Git Bash, no macOS e no Linux.
+# PROVEDOR=Dapper mede a escrita feita pelo Dapper (padrão: EfCore). A falha simulada só existe no EF Core.
 set -euo pipefail
 
+PROVEDOR=${PROVEDOR:-EfCore}
 COMPOSE="docker compose -f deployments/docker-compose.yml"
 sql() { $COMPOSE exec -T postgres psql -q -U corretora -d corretora -c "$1"; }
 no_ar() { curl -s -o /dev/null http://localhost:5000/graphql?sdl; }
@@ -37,7 +39,7 @@ medir() {
   sql "UPDATE contas SET saldo = 10000 WHERE usuario_id = 1; UPDATE contas SET saldo = 1000 WHERE usuario_id = 5;"
 
   dotnet src/Corretora.Api/bin/Debug/net10.0/Corretora.Api.dll --contentRoot "$PWD/src/Corretora.Api" \
-    --urls http://localhost:5000 --environment Development "$@" \
+    --urls http://localhost:5000 --environment Development --Persistencia:Provedor="$PROVEDOR" "$@" \
     > "relatorio-aula-04-$cenario.log" 2>&1 &
   api=$!
   until no_ar; do

@@ -1,4 +1,4 @@
-.PHONY: up down migrar banco-zerar run falha build medir test test-unit test-arch test-ordem clean
+.PHONY: up down migrar banco-zerar run run-dapper falha build medir test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -26,10 +26,16 @@ banco-zerar:
 	$(MAKE) migrar
 
 # make run ESTRATEGIA=Otimista troca a estratégia de concorrência (padrão: Pessimista).
+# PROVEDOR=Dapper troca quem grava (padrão: EfCore).
 ESTRATEGIA ?= Pessimista
+PROVEDOR ?= EfCore
 
 run:
-	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Concorrencia:Estrategia=$(ESTRATEGIA)
+	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR)
+
+# A mesma API gravando com Dapper: SQL escrito à mão, o handler não muda.
+run-dapper:
+	$(MAKE) run PROVEDOR=Dapper
 
 # Sobe a API com a falha ao gravar a ordem ligada (só para a aula).
 falha:
@@ -40,7 +46,7 @@ build:
 
 # Sobe a API sozinha em cada cenário (falha, sem trava, pessimista, otimista). Precisa de make up e make migrar.
 medir:
-	bash scripts/medir-aula-04.sh
+	PROVEDOR=$(PROVEDOR) bash scripts/medir-aula-04.sh
 	$(ABRIR) relatorio-aula-04.html
 
 test:

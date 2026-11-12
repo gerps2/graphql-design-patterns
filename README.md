@@ -4,8 +4,9 @@ Aplicação da disciplina GraphQL e Design Patterns (FIAP PosTech).
 make up         sobe o Postgres no Docker (porta 5433)
 make migrar     cria as tabelas e a carga inicial
 make run        sobe a API em http://localhost:5000 (ESTRATEGIA=SemTrava|Pessimista|Otimista)
+make run-dapper sobe a API gravando com Dapper no lugar do EF Core
 make falha      sobe a API com uma falha ao gravar a ordem (só para a aula)
-make medir      mede a consistência da escrita com o k6 (sobe a API sozinho) e abre o relatório
+make medir      mede a consistência da escrita com o k6 (sobe a API sozinho) e abre o relatório; PROVEDOR=Dapper mede o Dapper
 make build      compila a solução
 make test       roda todos os testes (o Postgres dos testes sobe sozinho, com Testcontainers)
 make test-unit  roda só os testes de unidade, sem subir a API
@@ -40,3 +41,14 @@ Cada caso de uso é uma pasta em `Features/<Feature>/<CasoDeUso>/`, com um arqui
 | `<CasoDeUso>Handler` | o caso de uso |
 
 A entidade e o que é da feature inteira ficam na raiz da feature. `Common/` guarda o que vale para todas: `Messaging` (mediator), `Results` (Result e Error) e `Decorators`.
+
+## Docker ou Podman
+
+Os testes de integração sobem o Postgres com Testcontainers e precisam de um Docker rodando. Com o Podman no Windows (máquina WSL), dois ajustes ficam só no seu terminal, sem ir para o repositório:
+
+```
+export TESTCONTAINERS_RYUK_DISABLED=true
+export TESTCONTAINERS_HOST_OVERRIDE=<ip da máquina WSL do Podman>
+```
+
+Se a porta 5433 não responder em `localhost`, aponte a API para o mesmo IP com `export ConnectionStrings__Corretora="Host=<ip>;Port=5433;Database=corretora;Username=corretora;Password=corretora_dev"`.

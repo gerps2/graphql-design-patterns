@@ -2,9 +2,6 @@ using Corretora.Api.Common.Data;
 using Corretora.Api.Features.Contas;
 using Corretora.Api.Features.Usuarios;
 using Corretora.Api.Features.Usuarios.CriarUsuario;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql;
 
 namespace Corretora.UnitTests.Features.Usuarios.CriarUsuario;
 
@@ -13,7 +10,7 @@ public class CriarUsuarioHandlerTests
     private readonly IUsuarioRepository _usuarios = Substitute.For<IUsuarioRepository>();
     private readonly IContaRepository _contas = Substitute.For<IContaRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
-    private readonly IDbContextTransaction _transaction = Substitute.For<IDbContextTransaction>();
+    private readonly ITransaction _transaction = Substitute.For<ITransaction>();
     private readonly CriarUsuarioHandler _handler;
 
     public CriarUsuarioHandlerTests()
@@ -61,8 +58,8 @@ public class CriarUsuarioHandlerTests
     {
         // Arrange
         _usuarios.ExisteEmailAsync(Command.Email, Arg.Any<CancellationToken>()).Returns(false);
-        var violacao = new PostgresException("duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
-        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns<int>(_ => throw new DbUpdateException("falhou", violacao));
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns<int>(_ => throw new UniqueConstraintViolationException(new Exception("ix_usuarios_email")));
 
         // Act
         var criar = () => _handler.Handle(Command, CancellationToken.None);

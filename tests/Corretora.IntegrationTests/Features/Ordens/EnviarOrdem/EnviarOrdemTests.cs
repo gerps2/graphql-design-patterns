@@ -8,12 +8,14 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
     private static string Ordem(int usuarioId, decimal quantidade = 10) =>
         $$"""mutation { enviarOrdem(input: { usuarioId: {{usuarioId}}, ativo: "PETR4", quantidade: {{quantidade}}, preco: 38.5 }) { ordem { id valor } } }""";
 
-    [Fact]
-    public async Task EnviarOrdem_SaldoSuficiente_DebitaOSaldoECriaAOrdem()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task EnviarOrdem_SaldoSuficiente_DebitaOSaldoECriaAOrdem(string provedor)
     {
         // Arrange
         await api.RedefinirSaldoAsync(2, 5000m);
-        var client = api.CreateClient();
+        var client = api.ClientCom(provedor);
         var antes = await api.LerSaldoEOrdensAsync(2);
 
         // Act
@@ -28,12 +30,14 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
     }
 
     // O cliente recebe só o erro genérico do Hot Chocolate: não sabe que foi saldo. É o gancho da Aula 6.
-    [Fact]
-    public async Task EnviarOrdem_SaldoInsuficiente_RetornaErroGenericoENaoMexeNoSaldo()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task EnviarOrdem_SaldoInsuficiente_RetornaErroGenericoENaoMexeNoSaldo(string provedor)
     {
         // Arrange
         await api.RedefinirSaldoAsync(2, 100m);
-        var client = api.CreateClient();
+        var client = api.ClientCom(provedor);
         var antes = await api.LerSaldoEOrdensAsync(2);
 
         // Act
@@ -45,11 +49,13 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
         (await api.LerSaldoEOrdensAsync(2)).Should().Be(antes);
     }
 
-    [Fact]
-    public async Task EnviarOrdem_UsuarioSemConta_RetornaErroGenerico()
+    [Theory]
+    [InlineData("EfCore")]
+    [InlineData("Dapper")]
+    public async Task EnviarOrdem_UsuarioSemConta_RetornaErroGenerico(string provedor)
     {
         // Arrange
-        var client = api.CreateClient();
+        var client = api.ClientCom(provedor);
 
         // Act
         var json = await client.PostGraphQLAsync(Ordem(999));

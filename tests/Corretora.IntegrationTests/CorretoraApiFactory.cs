@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Corretora.Api.Database;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,6 +12,7 @@ namespace Corretora.IntegrationTests;
 public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18-alpine").Build();
+    private readonly ConcurrentDictionary<string, WebApplicationFactory<Program>> _variacoes = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder) =>
         builder.UseSetting("ConnectionStrings:Corretora", _postgres.GetConnectionString());
@@ -22,6 +24,17 @@ public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsync
         using var scope = Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<CorretoraDbContext>().Database.MigrateAsync();
     }
+
+    // A mesma API e o mesmo banco, com outra configuração (provedor de persistência, estratégia, falha).
+    // Cada combinação sobe uma vez e é reaproveitada pelos testes.
+    public WebApplicationFactory<Program> Com(params (string Chave, string Valor)[] configuracoes) =>
+        _variacoes.GetOrAdd(string.Join(";", configuracoes), _ => WithWebHostBuilder(builder =>
+        {
+            foreach (var (chave, valor) in configuracoes)
+                builder.UseSetting(chave, valor);
+        }));
+
+    public HttpClient ClientCom(string provedor) => Com(("Persistencia:Provedor", provedor)).CreateClient();
 
     // Lê direto do banco, sem passar pela API: o teste confere o que foi gravado de verdade.
     public async Task<(decimal Saldo, int Ordens)> LerSaldoEOrdensAsync(int usuarioId)
@@ -44,6 +57,9 @@ public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsync
 
     async Task IAsyncLifetime.DisposeAsync()
     {
+        foreach (var variacao in _variacoes.Values)
+            await variacao.DisposeAsync();
+
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
     }
