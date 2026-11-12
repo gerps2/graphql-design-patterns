@@ -3,9 +3,9 @@ Aplicação da disciplina GraphQL e Design Patterns (FIAP PosTech).
 ```
 make up         sobe o Postgres no Docker (porta 5433)
 make migrar     cria as tabelas e a carga inicial
-make run        sobe a API em http://localhost:5000
+make run        sobe a API em http://localhost:5000 (ESTRATEGIA=SemTrava|Pessimista|Otimista)
 make falha      sobe a API com uma falha ao gravar a ordem (só para a aula)
-make medir      com a API de pé, mede a consistência da escrita com o k6 e abre o relatório
+make medir      mede a consistência da escrita com o k6 (sobe a API sozinho) e abre o relatório
 make build      compila a solução
 make test       roda todos os testes (o Postgres dos testes sobe sozinho, com Testcontainers)
 make test-unit  roda só os testes de unidade, sem subir a API

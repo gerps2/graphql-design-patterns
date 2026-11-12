@@ -11,7 +11,7 @@ public class EnviarOrdemValidacaoTests(CorretoraApiFactory api)
         // Arrange
         await api.RedefinirSaldoAsync(2, 5000m);
         var client = api.CreateClient();
-        var antes = await client.ObterSaldoEOrdensAsync(2);
+        var antes = await api.LerSaldoEOrdensAsync(2);
 
         // Act
         var json = await client.PostGraphQLAsync("""
@@ -21,6 +21,6 @@ public class EnviarOrdemValidacaoTests(CorretoraApiFactory api)
         // Assert
         json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
         json.GetProperty("errors")[0].GetProperty("message").GetString().Should().Be("Unexpected Execution Error");
-        (await client.ObterSaldoEOrdensAsync(2)).Should().Be(antes);
+        (await api.LerSaldoEOrdensAsync(2)).Should().Be(antes);
     }
 }

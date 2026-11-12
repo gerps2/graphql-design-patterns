@@ -11,6 +11,9 @@ public sealed class Conta
 
     public decimal Saldo { get; private set; }
 
+    // A versão da linha. No Postgres é a coluna de sistema xmin, que muda a cada gravação.
+    public uint Version { get; private set; }
+
     public static Conta Abrir(int usuarioId, decimal saldoInicial = 0m) =>
         new() { UsuarioId = usuarioId, Saldo = saldoInicial };
 

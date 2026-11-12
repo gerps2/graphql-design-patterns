@@ -16,14 +16,13 @@ public class TransacaoExplicitaTests(CorretoraApiFactory api)
     {
         // Arrange
         await api.RedefinirSaldoAsync(Usuario, 2000m);
-        var client = api.CreateClient();
-        var antes = await client.ObterSaldoEOrdensAsync(Usuario);
+        var antes = await api.LerSaldoEOrdensAsync(Usuario);
 
         // Act
         await GravarEmDoisFlushes(commit: false);
 
         // Assert
-        var depois = await client.ObterSaldoEOrdensAsync(Usuario);
+        var depois = await api.LerSaldoEOrdensAsync(Usuario);
         depois.Should().Be(antes);
     }
 
@@ -32,14 +31,13 @@ public class TransacaoExplicitaTests(CorretoraApiFactory api)
     {
         // Arrange
         await api.RedefinirSaldoAsync(Usuario, 2000m);
-        var client = api.CreateClient();
-        var antes = await client.ObterSaldoEOrdensAsync(Usuario);
+        var antes = await api.LerSaldoEOrdensAsync(Usuario);
 
         // Act
         await GravarEmDoisFlushes(commit: true);
 
         // Assert
-        var depois = await client.ObterSaldoEOrdensAsync(Usuario);
+        var depois = await api.LerSaldoEOrdensAsync(Usuario);
         depois.Should().Be((antes.Saldo - 100m, antes.Ordens + 1));
     }
 

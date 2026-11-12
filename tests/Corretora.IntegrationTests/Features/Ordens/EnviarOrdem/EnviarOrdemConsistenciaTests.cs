@@ -14,13 +14,13 @@ public class EnviarOrdemConsistenciaTests(CorretoraApiFactory api)
         // Arrange
         var apiComFalha = api.WithWebHostBuilder(builder => builder.UseSetting("Aula:FalharAoGravarOrdem", "true"));
         var client = apiComFalha.CreateClient();
-        var antes = await client.ObterSaldoEOrdensAsync(1);
+        var antes = await api.LerSaldoEOrdensAsync(1);
 
         // Act
         await client.PostGraphQLAsync(Ordem);
 
         // Assert
-        var depois = await client.ObterSaldoEOrdensAsync(1);
+        var depois = await api.LerSaldoEOrdensAsync(1);
         depois.Should().Be(antes, "uma ordem que falhou não pode levar o dinheiro");
     }
 }

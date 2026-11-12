@@ -23,6 +23,16 @@ public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsync
         await scope.ServiceProvider.GetRequiredService<CorretoraDbContext>().Database.MigrateAsync();
     }
 
+    // Lê direto do banco, sem passar pela API: o teste confere o que foi gravado de verdade.
+    public async Task<(decimal Saldo, int Ordens)> LerSaldoEOrdensAsync(int usuarioId)
+    {
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CorretoraDbContext>();
+        var saldo = await db.Contas.AsNoTracking().Where(c => c.UsuarioId == usuarioId).Select(c => c.Saldo).SingleAsync();
+        var ordens = await db.Ordens.CountAsync(o => o.UsuarioId == usuarioId);
+        return (saldo, ordens);
+    }
+
     // Cada teste que mexe no saldo começa de um valor conhecido.
     public async Task RedefinirSaldoAsync(int usuarioId, decimal saldo)
     {

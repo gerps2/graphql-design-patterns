@@ -14,7 +14,7 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
         // Arrange
         await api.RedefinirSaldoAsync(2, 5000m);
         var client = api.CreateClient();
-        var antes = await client.ObterSaldoEOrdensAsync(2);
+        var antes = await api.LerSaldoEOrdensAsync(2);
 
         // Act
         var json = await client.PostGraphQLAsync(Ordem(2));
@@ -23,7 +23,7 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
         var ordem = json.GetProperty("data").GetProperty("enviarOrdem").GetProperty("ordem");
         ordem.GetProperty("valor").GetDecimal().Should().Be(385m);
         ordem.GetProperty("id").GetInt32().Should().BePositive();
-        var depois = await client.ObterSaldoEOrdensAsync(2);
+        var depois = await api.LerSaldoEOrdensAsync(2);
         depois.Should().Be((antes.Saldo - 385m, antes.Ordens + 1));
     }
 
@@ -34,7 +34,7 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
         // Arrange
         await api.RedefinirSaldoAsync(2, 100m);
         var client = api.CreateClient();
-        var antes = await client.ObterSaldoEOrdensAsync(2);
+        var antes = await api.LerSaldoEOrdensAsync(2);
 
         // Act
         var json = await client.PostGraphQLAsync(Ordem(2));
@@ -42,7 +42,7 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
         // Assert
         json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
         json.GetProperty("errors")[0].GetProperty("message").GetString().Should().Be("Unexpected Execution Error");
-        (await client.ObterSaldoEOrdensAsync(2)).Should().Be(antes);
+        (await api.LerSaldoEOrdensAsync(2)).Should().Be(antes);
     }
 
     [Fact]

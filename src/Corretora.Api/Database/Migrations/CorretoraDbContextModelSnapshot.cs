@@ -111,10 +111,19 @@ namespace Corretora.Api.Database.Migrations
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("saldo");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("UsuarioId")
                         .HasName("pk_contas");
 
-                    b.ToTable("contas", (string)null);
+                    b.ToTable("contas", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_contas_saldo_nao_negativo", "saldo >= 0");
+                        });
 
                     b.HasData(
                         new

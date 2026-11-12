@@ -9,7 +9,6 @@ ABRIR = xdg-open
 endif
 
 COMPOSE = docker compose -f deployments/docker-compose.yml
-SQL = $(COMPOSE) exec -T postgres psql -U corretora -d corretora -c
 
 up:
 	$(COMPOSE) up -d --wait
@@ -26,8 +25,11 @@ banco-zerar:
 	$(COMPOSE) up -d --wait
 	$(MAKE) migrar
 
+# make run ESTRATEGIA=Otimista troca a estratégia de concorrência (padrão: Pessimista).
+ESTRATEGIA ?= Pessimista
+
 run:
-	dotnet run --project src/Corretora.Api --urls http://localhost:5000
+	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Concorrencia:Estrategia=$(ESTRATEGIA)
 
 # Sobe a API com a falha ao gravar a ordem ligada (só para a aula).
 falha:
@@ -36,10 +38,9 @@ falha:
 build:
 	dotnet build Corretora.sln
 
-# Com a API de pé (make falha), mede os débitos sem ordem.
+# Sobe a API sozinha em cada cenário (falha, sem trava, pessimista, otimista). Precisa de make up e make migrar.
 medir:
-	$(SQL) "UPDATE contas SET saldo = 10000 WHERE usuario_id = 1"
-	k6 run --quiet scripts/medir-aula-04.js
+	bash scripts/medir-aula-04.sh
 	$(ABRIR) relatorio-aula-04.html
 
 test:

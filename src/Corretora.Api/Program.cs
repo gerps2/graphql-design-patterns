@@ -10,16 +10,19 @@ using Corretora.Api.Features.Ordens;
 using Corretora.Api.Features.Usuarios;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 [assembly: Module("Corretora")]
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<ConcorrenciaOptions>(builder.Configuration.GetSection("Concorrencia"));
 builder.Services.AddDbContext<CorretoraDbContext>(options =>
 {
     options
         .UseNpgsql(builder.Configuration.GetConnectionString("Corretora"))
-        .UseSnakeCaseNamingConvention();
+        .UseSnakeCaseNamingConvention()
+        .ReplaceService<IModelCacheKeyFactory, ModeloPorEstrategia>();
 
     if (builder.Configuration.GetValue<bool>("Aula:FalharAoGravarOrdem"))
         options.AddInterceptors(new FalhaEntreGravacoesInterceptor());
