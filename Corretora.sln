@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "itens", "itens", "{A1F0C3D2
 		global.json = global.json
 		Makefile = Makefile
 		README.md = README.md
+		deployments\docker-compose.yml = deployments\docker-compose.yml
+		.config\dotnet-tools.json = .config\dotnet-tools.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "flows", "flows", "{A1F0C3D2-6B7E-4E11-9C55-0D2C4B7A1E02}"

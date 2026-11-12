@@ -12,7 +12,8 @@ public class ObterCarteiraHandlerTests
     public async Task Handle_DuasPosicoes_CalculaAParticipacaoDeCada()
     {
         // Arrange
-        _banco.BuscarPosicoes(1).Returns([new Posicao(1, "PETR4", 10, 750m), new Posicao(1, "ITUB4", 10, 250m)]);
+        _banco.BuscarPosicoes(1, Arg.Any<CancellationToken>())
+            .Returns([new Posicao(1, "PETR4", 10, 750m), new Posicao(1, "ITUB4", 10, 250m)]);
         var handler = new ObterCarteiraHandler(_banco);
 
         // Act
@@ -26,7 +27,8 @@ public class ObterCarteiraHandlerTests
     public async Task Handle_PosicoesForaDeOrdem_OrdenaDaMaiorParaAMenor()
     {
         // Arrange
-        _banco.BuscarPosicoes(1).Returns([new Posicao(1, "ITUB4", 10, 250m), new Posicao(1, "PETR4", 10, 750m)]);
+        _banco.BuscarPosicoes(1, Arg.Any<CancellationToken>())
+            .Returns([new Posicao(1, "ITUB4", 10, 250m), new Posicao(1, "PETR4", 10, 750m)]);
         var handler = new ObterCarteiraHandler(_banco);
 
         // Act
@@ -40,7 +42,7 @@ public class ObterCarteiraHandlerTests
     public async Task Handle_SemPosicoes_RetornaListaVazia()
     {
         // Arrange
-        _banco.BuscarPosicoes(1).Returns([]);
+        _banco.BuscarPosicoes(1, Arg.Any<CancellationToken>()).Returns([]);
         var handler = new ObterCarteiraHandler(_banco);
 
         // Act

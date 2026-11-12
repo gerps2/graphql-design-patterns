@@ -5,6 +5,9 @@ namespace Corretora.Api.Features.Rentabilidade.ObterRentabilidade;
 
 public sealed class ObterRentabilidadeHandler(IBanco banco) : IQueryHandler<ObterRentabilidadeQuery, List<PosicaoRentabilidadeOutput>>
 {
-    public Task<List<PosicaoRentabilidadeOutput>> Handle(ObterRentabilidadeQuery query, CancellationToken ct) =>
-        Task.FromResult(banco.BuscarRentabilidade(query.UsuarioId).Select(PosicaoRentabilidadeOutput.De).ToList());
+    public async Task<List<PosicaoRentabilidadeOutput>> Handle(ObterRentabilidadeQuery query, CancellationToken ct)
+    {
+        var rentabilidade = await banco.BuscarRentabilidade(query.UsuarioId, ct);
+        return rentabilidade.Select(PosicaoRentabilidadeOutput.De).ToList();
+    }
 }

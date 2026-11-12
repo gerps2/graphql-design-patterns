@@ -5,13 +5,9 @@ namespace Corretora.Api.Features.Transacoes.ObterTransacoes;
 
 public sealed class ObterTransacoesHandler(IBanco banco) : IQueryHandler<ObterTransacoesQuery, List<TransacaoOutput>>
 {
-    public Task<List<TransacaoOutput>> Handle(ObterTransacoesQuery query, CancellationToken ct)
+    public async Task<List<TransacaoOutput>> Handle(ObterTransacoesQuery query, CancellationToken ct)
     {
-        var transacoes = banco.BuscarTransacoes(query.UsuarioId)
-            .OrderByDescending(t => t.Data)
-            .Select(TransacaoOutput.De)
-            .ToList();
-
-        return Task.FromResult(transacoes);
+        var transacoes = await banco.BuscarTransacoes(query.UsuarioId, ct);
+        return transacoes.OrderByDescending(t => t.Data).Select(TransacaoOutput.De).ToList();
     }
 }

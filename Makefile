@@ -1,4 +1,21 @@
-.PHONY: run build test test-unit test-arch clean
+.PHONY: up down migrar banco-zerar run build test test-unit test-arch clean
+
+COMPOSE = docker compose -f deployments/docker-compose.yml
+
+up:
+	$(COMPOSE) up -d --wait
+
+down:
+	$(COMPOSE) down
+
+migrar:
+	dotnet tool restore
+	dotnet ef database update --project src/Corretora.Api
+
+banco-zerar:
+	$(COMPOSE) down -v
+	$(COMPOSE) up -d --wait
+	$(MAKE) migrar
 
 run:
 	dotnet run --project src/Corretora.Api --urls http://localhost:5000

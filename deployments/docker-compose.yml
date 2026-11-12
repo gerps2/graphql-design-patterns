@@ -1,0 +1,23 @@
+# Banco da corretora para desenvolvimento local.
+# A senha abaixo só vale nesta máquina. Em produção, ela vem de um cofre de segredos.
+name: corretora
+
+services:
+  postgres:
+    image: docker.io/library/postgres:18-alpine
+    environment:
+      POSTGRES_USER: corretora
+      POSTGRES_PASSWORD: corretora_dev
+      POSTGRES_DB: corretora
+    ports:
+      - "5433:5432"
+    volumes:
+      - dados:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U corretora -d corretora"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  dados:

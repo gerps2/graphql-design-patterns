@@ -11,7 +11,7 @@ public class ObterTransacoesHandlerTests
     {
         // Arrange
         var banco = Substitute.For<IBanco>();
-        banco.BuscarTransacoes(1).Returns(
+        banco.BuscarTransacoes(1, Arg.Any<CancellationToken>()).Returns(
         [
             new Transacao(1, 1, "PETR4", TipoTransacao.Compra, 100m, new DateOnly(2026, 10, 20)),
             new Transacao(1, 2, "ITUB4", TipoTransacao.Venda, 100m, new DateOnly(2026, 10, 28)),

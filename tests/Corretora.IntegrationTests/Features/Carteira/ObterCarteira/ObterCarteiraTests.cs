@@ -1,14 +1,13 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-
 namespace Corretora.IntegrationTests.Features.Carteira.ObterCarteira;
 
-public class ObterCarteiraTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+[Collection(nameof(ApiCollection))]
+public class ObterCarteiraTests(CorretoraApiFactory api)
 {
     [Fact]
     public async Task Carteira_UsuarioComTresPosicoes_MaiorPosicaoVemPrimeiroComParticipacao()
     {
         // Arrange
-        var client = factory.CreateClient();
+        var client = api.CreateClient();
 
         // Act
         var json = await client.PostGraphQLAsync("{ usuario(id: 1) { carteira { ativo participacao } } }");

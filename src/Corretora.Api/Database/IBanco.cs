@@ -5,11 +5,12 @@ using Corretora.Api.Features.Usuarios;
 
 namespace Corretora.Api.Database;
 
+// A porta de leitura. Os métodos viraram assíncronos porque agora existe uma ida ao banco.
 public interface IBanco
 {
-    Usuario? BuscarUsuario(int id);
-    List<Usuario> BuscarUsuarios();
-    List<Posicao> BuscarPosicoes(int usuarioId);
-    List<Transacao> BuscarTransacoes(int usuarioId);
-    List<PosicaoRentabilidade> BuscarRentabilidade(int usuarioId);
+    Task<Usuario?> BuscarUsuario(int id, CancellationToken ct);
+    Task<List<Usuario>> BuscarUsuarios(CancellationToken ct);
+    Task<List<Posicao>> BuscarPosicoes(int usuarioId, CancellationToken ct);
+    Task<List<Transacao>> BuscarTransacoes(int usuarioId, CancellationToken ct);
+    Task<List<PosicaoRentabilidade>> BuscarRentabilidade(int usuarioId, CancellationToken ct);
 }

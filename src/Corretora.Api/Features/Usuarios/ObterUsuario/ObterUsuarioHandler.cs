@@ -5,9 +5,9 @@ namespace Corretora.Api.Features.Usuarios.ObterUsuario;
 
 public sealed class ObterUsuarioHandler(IBanco banco) : IQueryHandler<ObterUsuarioQuery, UsuarioOutput?>
 {
-    public Task<UsuarioOutput?> Handle(ObterUsuarioQuery query, CancellationToken ct)
+    public async Task<UsuarioOutput?> Handle(ObterUsuarioQuery query, CancellationToken ct)
     {
-        var usuario = banco.BuscarUsuario(query.Id);
-        return Task.FromResult(usuario is null ? null : UsuarioOutput.De(usuario));
+        var usuario = await banco.BuscarUsuario(query.Id, ct);
+        return usuario is null ? null : UsuarioOutput.De(usuario);
     }
 }

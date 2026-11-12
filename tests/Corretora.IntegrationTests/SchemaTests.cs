@@ -1,14 +1,13 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-
 namespace Corretora.IntegrationTests;
 
-public class SchemaTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+[Collection(nameof(ApiCollection))]
+public class SchemaTests(CorretoraApiFactory api)
 {
     [Fact]
     public async Task Schema_ComparadoAoContratoSalvo_ContinuaIgual()
     {
         // Arrange
-        var client = factory.CreateClient();
+        var client = api.CreateClient();
         var contrato = await File.ReadAllTextAsync("schema.graphql");
 
         // Act
