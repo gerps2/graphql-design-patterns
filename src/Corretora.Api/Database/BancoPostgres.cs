@@ -20,11 +20,11 @@ public sealed class BancoPostgres(CorretoraDbContext db) : IBanco
     public Task<List<Usuario>> BuscarUsuarios(IReadOnlyList<int> ids, CancellationToken ct) =>
         db.Usuarios.AsNoTracking().Where(u => ids.Contains(u.Id)).ToListAsync(ct);
 
-    public Task<List<Posicao>> BuscarPosicoes(int usuarioId, CancellationToken ct) =>
-        db.Posicoes.AsNoTracking().Where(p => p.UsuarioId == usuarioId).ToListAsync(ct);
+    public Task<List<Posicao>> BuscarPosicoes(IReadOnlyList<int> usuarioIds, CancellationToken ct) =>
+        db.Posicoes.AsNoTracking().Where(p => usuarioIds.Contains(p.UsuarioId)).ToListAsync(ct);
 
-    public Task<List<Transacao>> BuscarTransacoes(int usuarioId, CancellationToken ct) =>
-        db.Transacoes.AsNoTracking().Where(t => t.UsuarioId == usuarioId).ToListAsync(ct);
+    public Task<List<Transacao>> BuscarTransacoes(IReadOnlyList<int> usuarioIds, CancellationToken ct) =>
+        db.Transacoes.AsNoTracking().Where(t => usuarioIds.Contains(t.UsuarioId)).ToListAsync(ct);
 
     public Task<List<PosicaoRentabilidade>> BuscarRentabilidade(int usuarioId, CancellationToken ct) =>
         db.Rentabilidades.AsNoTracking().Where(r => r.UsuarioId == usuarioId).ToListAsync(ct);

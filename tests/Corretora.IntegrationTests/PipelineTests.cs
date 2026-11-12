@@ -49,4 +49,19 @@ public class PipelineTests(CorretoraApiFactory api)
         // Assert
         Camadas(logs).Should().Equal("Logging", "Validation", "Logging");
     }
+
+    [Fact]
+    public async Task TelaInicial_DataLoaderDeGrupo_CadaQueryEmLotePassaPeloLoggingUmaVez()
+    {
+        // Arrange
+        var (client, logs) = ClientComLog();
+
+        // Act
+        await client.PostGraphQLAsync("{ usuarios { carteira { ativo } transacoes { ativo } } }");
+
+        // Assert
+        var comecos = logs.GetSnapshot().Where(r => r.Category == "Pipeline" && r.Message.EndsWith("começou"))
+            .Select(r => r.Message.Split(' ')[1]).ToList();
+        comecos.Should().BeEquivalentTo(["ObterUsuariosQuery", "ObterCarteirasQuery", "ObterTransacoesQuery"]);
+    }
 }

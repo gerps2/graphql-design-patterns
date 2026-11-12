@@ -9,7 +9,7 @@ public class TelaInicialTests(CorretoraApiFactory api)
         """;
 
     [Fact]
-    public async Task TelaInicial_SemDataLoader_FazUmaConsultaMaisDuasPorUsuario()
+    public async Task TelaInicial_ComDataLoaderDeGrupo_FazTresConsultasQualquerQueSejaONumeroDeUsuarios()
     {
         // Arrange
         var client = api.CreateClient();
@@ -18,7 +18,8 @@ public class TelaInicialTests(CorretoraApiFactory api)
         var (json, consultas) = await client.PostGraphQLContandoAsync(TelaInicial);
 
         // Assert
-        var usuarios = json.GetProperty("data").GetProperty("usuarios").GetArrayLength();
-        consultas.Should().Be(1 + 2 * usuarios, "uma consulta de usuários, mais uma de carteira e uma de transações por usuário");
+        json.TryGetProperty("errors", out var erros).Should().BeFalse(erros.ToString());
+        json.GetProperty("data").GetProperty("usuarios").GetArrayLength().Should().BeGreaterThanOrEqualTo(5);
+        consultas.Should().Be(3, "uma de usuários, uma de carteiras e uma de transações, cada uma com WHERE IN");
     }
 }

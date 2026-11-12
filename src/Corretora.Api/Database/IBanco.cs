@@ -12,8 +12,8 @@ public interface IBanco
     Task<Usuario?> BuscarUsuario(int id, CancellationToken ct);
     Task<List<Usuario>> BuscarUsuarios(CancellationToken ct);
     Task<List<Usuario>> BuscarUsuarios(IReadOnlyList<int> ids, CancellationToken ct);
-    Task<List<Posicao>> BuscarPosicoes(int usuarioId, CancellationToken ct);
-    Task<List<Transacao>> BuscarTransacoes(int usuarioId, CancellationToken ct);
+    Task<List<Posicao>> BuscarPosicoes(IReadOnlyList<int> usuarioIds, CancellationToken ct);
+    Task<List<Transacao>> BuscarTransacoes(IReadOnlyList<int> usuarioIds, CancellationToken ct);
     Task<List<PosicaoRentabilidade>> BuscarRentabilidade(int usuarioId, CancellationToken ct);
     Task<decimal> BuscarSaldo(int usuarioId, CancellationToken ct);
     Task<List<Ordem>> BuscarOrdens(int usuarioId, CancellationToken ct);

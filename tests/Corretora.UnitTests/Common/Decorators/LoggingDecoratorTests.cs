@@ -1,8 +1,7 @@
 using Corretora.Api.Common.Decorators;
 using Corretora.Api.Common.Messaging;
-using Corretora.Api.Features.Carteira;
-using Corretora.Api.Features.Carteira.ObterCarteira;
 using Corretora.Api.Features.Contas;
+using Corretora.Api.Features.Contas.ObterSaldo;
 using Corretora.Api.Features.Ordens.EnviarOrdem;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
@@ -21,19 +20,18 @@ public class LoggingDecoratorTests
     public async Task Handle_Query_DevolveARespostaDoHandlerERegistraInicioEFim()
     {
         // Arrange
-        var inner = Substitute.For<IQueryHandler<ObterCarteiraQuery, List<PosicaoNaCarteiraOutput>>>();
-        inner.Handle(Arg.Any<ObterCarteiraQuery>(), Arg.Any<CancellationToken>())
-            .Returns([new PosicaoNaCarteiraOutput("PETR4", 10, 750m, 100m)]);
-        var decorator = new LoggingDecorator.QueryHandler<ObterCarteiraQuery, List<PosicaoNaCarteiraOutput>>(inner, _loggerFactory);
+        var inner = Substitute.For<IQueryHandler<ObterSaldoQuery, decimal>>();
+        inner.Handle(Arg.Any<ObterSaldoQuery>(), Arg.Any<CancellationToken>()).Returns(750m);
+        var decorator = new LoggingDecorator.QueryHandler<ObterSaldoQuery, decimal>(inner, _loggerFactory);
 
         // Act
-        var carteira = await decorator.Handle(new ObterCarteiraQuery(1), CancellationToken.None);
+        var saldo = await decorator.Handle(new ObterSaldoQuery(1), CancellationToken.None);
 
         // Assert
-        carteira.Should().ContainSingle();
+        saldo.Should().Be(750m);
         _logs.GetSnapshot().Select(r => r.Message).Should().SatisfyRespectively(
-            inicio => inicio.Should().Contain("ObterCarteiraQuery").And.Contain("começou"),
-            fim => fim.Should().Contain("ObterCarteiraQuery").And.Contain("terminou"));
+            inicio => inicio.Should().Contain("ObterSaldoQuery").And.Contain("começou"),
+            fim => fim.Should().Contain("ObterSaldoQuery").And.Contain("terminou"));
     }
 
     [Fact]
