@@ -1,4 +1,5 @@
 using Corretora.Api.Features.Carteira;
+using Corretora.Api.Features.Ordens;
 using Corretora.Api.Features.Rentabilidade;
 using Corretora.Api.Features.Transacoes;
 using Corretora.Api.Features.Usuarios;
@@ -23,4 +24,10 @@ public sealed class BancoPostgres(CorretoraDbContext db) : IBanco
 
     public Task<List<PosicaoRentabilidade>> BuscarRentabilidade(int usuarioId, CancellationToken ct) =>
         db.Rentabilidades.AsNoTracking().Where(r => r.UsuarioId == usuarioId).ToListAsync(ct);
+
+    public Task<decimal> BuscarSaldo(int usuarioId, CancellationToken ct) =>
+        db.Contas.AsNoTracking().Where(c => c.UsuarioId == usuarioId).Select(c => c.Saldo).FirstOrDefaultAsync(ct);
+
+    public Task<List<Ordem>> BuscarOrdens(int usuarioId, CancellationToken ct) =>
+        db.Ordens.AsNoTracking().Where(o => o.UsuarioId == usuarioId).OrderByDescending(o => o.Id).ToListAsync(ct);
 }

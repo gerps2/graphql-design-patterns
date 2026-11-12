@@ -1,0 +1,11 @@
+### Enviar uma ordem de compra
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"PETR4\", quantidade: 10, preco: 38.5 }) { id ativo valor } }"}
+
+### Ver o saldo e as ordens
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"{ usuario(id: 1) { saldoDisponivel ordens { id ativo valor } } }"}

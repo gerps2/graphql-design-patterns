@@ -7,6 +7,7 @@ public class NamingTests : BaseTest
 {
     [Theory]
     [InlineData(typeof(IQueryHandler<,>))]
+    [InlineData(typeof(ICommandHandler<,>))]
     public void ClassesQueImplementamHandler_NasFeatures_TerminamEmHandlerOuDecorator(Type handlerInterface)
     {
         // Arrange

@@ -1,5 +1,6 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type Query {
@@ -7,10 +8,24 @@ type Query {
   usuarios: [Usuario!]! @cost(weight: "10")
 }
 
+type Mutation {
+  enviarOrdem(input: EnviarOrdemInput!): Ordem! @cost(weight: "10")
+}
+
 type Endereco {
   rua: String!
   numero: Int!
   cidade: String!
+}
+
+type Ordem {
+  id: Int!
+  usuarioId: Int!
+  ativo: String!
+  quantidade: Decimal!
+  preco: Decimal!
+  valor: Decimal!
+  criadaEm: DateTime!
 }
 
 type PosicaoNaCarteira {
@@ -35,6 +50,8 @@ type Transacao {
 
 type Usuario {
   carteira: [PosicaoNaCarteira!]! @cost(weight: "10")
+  saldoDisponivel: Decimal! @cost(weight: "10")
+  ordens: [Ordem!]! @cost(weight: "10")
   rentabilidade: [PosicaoRentabilidade!]! @cost(weight: "10")
   transacoes: [Transacao!]! @cost(weight: "10")
   id: Int!
@@ -44,10 +61,21 @@ type Usuario {
   endereco: Endereco!
 }
 
+input EnviarOrdemInput {
+  usuarioId: Int!
+  ativo: String!
+  quantidade: Decimal!
+  preco: Decimal!
+}
+
 enum TipoTransacao {
   COMPRA
   VENDA
 }
+
+"The `DateTime` scalar type represents a date and time with time zone offset information."
+scalar DateTime
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/date-time.html")
 
 "The `Decimal` scalar type represents a decimal floating-point number with high precision."
 scalar Decimal

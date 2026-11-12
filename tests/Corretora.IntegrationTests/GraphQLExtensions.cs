@@ -11,4 +11,12 @@ public static class GraphQLExtensions
         var response = await client.PostAsJsonAsync("/graphql", new { query });
         return await response.Content.ReadFromJsonAsync<JsonElement>();
     }
+
+    // O que o investidor vê: saldo disponível e quantas ordens existem.
+    public static async Task<(decimal Saldo, int Ordens)> ObterSaldoEOrdensAsync(this HttpClient client, int usuarioId)
+    {
+        var json = await client.PostGraphQLAsync($"{{ usuario(id: {usuarioId}) {{ saldoDisponivel ordens {{ id }} }} }}");
+        var usuario = json.GetProperty("data").GetProperty("usuario");
+        return (usuario.GetProperty("saldoDisponivel").GetDecimal(), usuario.GetProperty("ordens").GetArrayLength());
+    }
 }

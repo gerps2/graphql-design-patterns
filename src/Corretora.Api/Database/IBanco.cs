@@ -1,4 +1,5 @@
 using Corretora.Api.Features.Carteira;
+using Corretora.Api.Features.Ordens;
 using Corretora.Api.Features.Rentabilidade;
 using Corretora.Api.Features.Transacoes;
 using Corretora.Api.Features.Usuarios;
@@ -13,4 +14,6 @@ public interface IBanco
     Task<List<Posicao>> BuscarPosicoes(int usuarioId, CancellationToken ct);
     Task<List<Transacao>> BuscarTransacoes(int usuarioId, CancellationToken ct);
     Task<List<PosicaoRentabilidade>> BuscarRentabilidade(int usuarioId, CancellationToken ct);
+    Task<decimal> BuscarSaldo(int usuarioId, CancellationToken ct);
+    Task<List<Ordem>> BuscarOrdens(int usuarioId, CancellationToken ct);
 }

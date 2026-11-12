@@ -100,6 +100,92 @@ namespace Corretora.Api.Database.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Corretora.Api.Features.Contas.Conta", b =>
+                {
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<decimal>("Saldo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("saldo");
+
+                    b.HasKey("UsuarioId")
+                        .HasName("pk_contas");
+
+                    b.ToTable("contas", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UsuarioId = 1,
+                            Saldo = 10000.00m
+                        },
+                        new
+                        {
+                            UsuarioId = 2,
+                            Saldo = 5000.00m
+                        },
+                        new
+                        {
+                            UsuarioId = 3,
+                            Saldo = 2000.00m
+                        },
+                        new
+                        {
+                            UsuarioId = 4,
+                            Saldo = 1000.00m
+                        },
+                        new
+                        {
+                            UsuarioId = 5,
+                            Saldo = 1000.00m
+                        });
+                });
+
+            modelBuilder.Entity("Corretora.Api.Features.Ordens.Ordem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Ativo")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("ativo");
+
+                    b.Property<DateTime>("CriadaEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criada_em");
+
+                    b.Property<decimal>("Preco")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("preco");
+
+                    b.Property<decimal>("Quantidade")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("quantidade");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ordens");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_ordens_usuario_id");
+
+                    b.ToTable("ordens", (string)null);
+                });
+
             modelBuilder.Entity("Corretora.Api.Features.Rentabilidade.PosicaoRentabilidade", b =>
                 {
                     b.Property<int>("UsuarioId")
@@ -324,6 +410,26 @@ namespace Corretora.Api.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_posicoes_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Corretora.Api.Features.Contas.Conta", b =>
+                {
+                    b.HasOne("Corretora.Api.Features.Usuarios.Usuario", null)
+                        .WithOne()
+                        .HasForeignKey("Corretora.Api.Features.Contas.Conta", "UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_contas_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Corretora.Api.Features.Ordens.Ordem", b =>
+                {
+                    b.HasOne("Corretora.Api.Features.Usuarios.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ordens_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("Corretora.Api.Features.Rentabilidade.PosicaoRentabilidade", b =>

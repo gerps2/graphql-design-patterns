@@ -1,6 +1,15 @@
-.PHONY: up down migrar banco-zerar run build test test-unit test-arch clean
+.PHONY: up down migrar banco-zerar run falha build medir test test-unit test-arch test-ordem clean
+
+ifeq ($(OS),Windows_NT)
+ABRIR = powershell -NoProfile -Command Start-Process
+else ifeq ($(shell uname),Darwin)
+ABRIR = open
+else
+ABRIR = xdg-open
+endif
 
 COMPOSE = docker compose -f deployments/docker-compose.yml
+SQL = $(COMPOSE) exec -T postgres psql -U corretora -d corretora -c
 
 up:
 	$(COMPOSE) up -d --wait
@@ -20,8 +29,18 @@ banco-zerar:
 run:
 	dotnet run --project src/Corretora.Api --urls http://localhost:5000
 
+# Sobe a API com a falha ao gravar a ordem ligada (só para a aula).
+falha:
+	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Aula:FalharAoGravarOrdem=true
+
 build:
 	dotnet build Corretora.sln
+
+# Com a API de pé (make falha), mede os débitos sem ordem.
+medir:
+	$(SQL) "UPDATE contas SET saldo = 10000 WHERE usuario_id = 1"
+	k6 run --quiet scripts/medir-aula-04.js
+	$(ABRIR) relatorio-aula-04.html
 
 test:
 	dotnet test Corretora.sln
@@ -31,6 +50,9 @@ test-unit:
 
 test-arch:
 	dotnet test tests/Corretora.ArchitectureTests --logger "console;verbosity=normal"
+
+test-ordem:
+	dotnet test tests/Corretora.IntegrationTests --filter EnviarOrdem --logger "console;verbosity=normal"
 
 clean:
 	dotnet clean Corretora.sln
