@@ -1,11 +1,11 @@
 using Corretora.Api.Database;
-using Corretora.Api.Features.Usuarios;
 using Microsoft.EntityFrameworkCore;
 
-namespace Corretora.Api.Features.Ordens.ObterDono;
+namespace Corretora.Api.Features.Usuarios;
 
-// O DataLoader de hoje: um método estático. O gerador do Hot Chocolate cria a classe e a interface IUsuarioByIdDataLoader.
-public static class ObterDonoDataLoader
+// O usuário por id. Mora na raiz da feature porque dois slices usam: o usuario(id) e o dono da ordem.
+// O cache do DataLoader vale o request inteiro: o mesmo id pedido pelos dois sai do banco uma vez só.
+public static class UsuarioDataLoader
 {
     [DataLoader]
     public static async Task<Dictionary<int, UsuarioOutput>> GetUsuarioByIdAsync(

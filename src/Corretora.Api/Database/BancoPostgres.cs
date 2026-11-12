@@ -10,15 +10,8 @@ namespace Corretora.Api.Database;
 // Leitura sem rastreamento: o EF Core não guarda cópia do que só vai ser lido.
 public sealed class BancoPostgres(CorretoraDbContext db) : IBanco
 {
-    public Task<Usuario?> BuscarUsuario(int id, CancellationToken ct) =>
-        db.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);
-
     public Task<List<Usuario>> BuscarUsuarios(CancellationToken ct) =>
         db.Usuarios.AsNoTracking().OrderBy(u => u.Id).ToListAsync(ct);
-
-    // Uma consulta para vários ids: WHERE id = ANY (@ids), o IN do Postgres.
-    public Task<List<Usuario>> BuscarUsuarios(IReadOnlyList<int> ids, CancellationToken ct) =>
-        db.Usuarios.AsNoTracking().Where(u => ids.Contains(u.Id)).ToListAsync(ct);
 
     public Task<List<Posicao>> BuscarPosicoes(IReadOnlyList<int> usuarioIds, CancellationToken ct) =>
         db.Posicoes.AsNoTracking().Where(p => usuarioIds.Contains(p.UsuarioId)).ToListAsync(ct);
