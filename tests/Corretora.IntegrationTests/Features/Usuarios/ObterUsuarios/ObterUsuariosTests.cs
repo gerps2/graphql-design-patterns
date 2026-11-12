@@ -14,6 +14,6 @@ public class ObterUsuariosTests(CorretoraApiFactory api)
 
         // Assert
         json.TryGetProperty("errors", out var erros).Should().BeFalse(erros.ToString());
-        json.GetProperty("data").GetProperty("usuarios").GetArrayLength().Should().Be(5);
+        json.GetProperty("data").GetProperty("usuarios").GetArrayLength().Should().BeGreaterThanOrEqualTo(5, "outros testes da coleção podem ter criado usuários");
     }
 }

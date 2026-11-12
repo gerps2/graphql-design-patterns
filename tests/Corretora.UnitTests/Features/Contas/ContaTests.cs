@@ -18,7 +18,7 @@ public class ContaTests
     }
 
     [Fact]
-    public void Debitar_ValorAcimaDoSaldo_LancaENaoMexeNoSaldo()
+    public void Debitar_ValorAcimaDoSaldo_LancaSaldoInsuficienteENaoMexeNoSaldo()
     {
         // Arrange
         var conta = Conta.Abrir(1, 100m);
@@ -27,7 +27,7 @@ public class ContaTests
         var debitar = () => conta.Debitar(385m);
 
         // Assert
-        debitar.Should().Throw<InvalidOperationException>();
+        debitar.Should().Throw<SaldoInsuficienteException>().Which.Necessario.Should().Be(385m);
         conta.Saldo.Should().Be(100m);
     }
 }

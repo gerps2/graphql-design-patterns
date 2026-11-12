@@ -7,7 +7,7 @@ import { gerarRelatorio } from './relatorio-aula-04.js';
 const base = __ENV.BASE_URL || 'http://localhost:5000';
 const usuario = 1;
 const valorDaOrdem = 385;
-const ordem = `mutation { enviarOrdem(input: { usuarioId: ${usuario}, ativo: "PETR4", quantidade: 10, preco: 38.5 }) { id } }`;
+const ordem = `mutation { enviarOrdem(input: { usuarioId: ${usuario}, ativo: "PETR4", quantidade: 10, preco: 38.5 }) { ordem { id } } }`;
 
 function graphql(query) {
   return http.post(`${base}/graphql`, JSON.stringify({ query }), {

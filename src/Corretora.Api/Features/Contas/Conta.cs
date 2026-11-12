@@ -14,10 +14,11 @@ public sealed class Conta
     public static Conta Abrir(int usuarioId, decimal saldoInicial = 0m) =>
         new() { UsuarioId = usuarioId, Saldo = saldoInicial };
 
+    // A regra mora na entidade: sem saldo, a ordem não passa daqui.
     public void Debitar(decimal valor)
     {
         if (valor > Saldo)
-            throw new InvalidOperationException("Saldo insuficiente.");
+            throw new SaldoInsuficienteException(Saldo, valor);
 
         Saldo -= valor;
     }

@@ -25,10 +25,10 @@ public class EnviarOrdemHandlerTests
         _contas.ObterPorUsuarioAsync(1, Arg.Any<CancellationToken>()).Returns(conta);
 
         // Act
-        var ordem = await _handler.Handle(Command(), CancellationToken.None);
+        var output = await _handler.Handle(Command(), CancellationToken.None);
 
         // Assert
-        ordem.Valor.Should().Be(385m);
+        output.Ordem!.Valor.Should().Be(385m);
         conta.Saldo.Should().Be(615m);
         _ordens.Received(1).Adicionar(Arg.Is<Ordem>(o => o.Ativo == "PETR4" && o.Valor == 385m));
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -44,13 +44,13 @@ public class EnviarOrdemHandlerTests
         var enviar = () => _handler.Handle(Command(), CancellationToken.None);
 
         // Assert
-        await enviar.Should().ThrowAsync<InvalidOperationException>();
+        await enviar.Should().ThrowAsync<SaldoInsuficienteException>();
         _ordens.DidNotReceive().Adicionar(Arg.Any<Ordem>());
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_ContaInexistente_LancaSemSalvar()
+    public async Task Handle_ContaInexistente_LancaContaNaoEncontradaSemSalvar()
     {
         // Arrange
         _contas.ObterPorUsuarioAsync(1, Arg.Any<CancellationToken>()).Returns((Conta?)null);
@@ -59,7 +59,7 @@ public class EnviarOrdemHandlerTests
         var enviar = () => _handler.Handle(Command(), CancellationToken.None);
 
         // Assert
-        await enviar.Should().ThrowAsync<InvalidOperationException>();
+        await enviar.Should().ThrowAsync<ContaNaoEncontradaException>();
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

@@ -1,0 +1,11 @@
+### Criar um usuário (a conta nasce com saldo zero)
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"mutation { criarUsuario(input: { nome: \"Fábio Reis\", email: \"fabio@corretora.com\", telefone: \"11 99999-0006\", cpf: \"222.333.444-55\", rua: \"Rua Nova\", numero: 1, cidade: \"Recife\" }) { usuario { id nome saldoDisponivel } } }"}
+
+### O mesmo e-mail de novo: erro genérico, e o usuário não é criado
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"mutation { criarUsuario(input: { nome: \"Fábio Reis\", email: \"fabio@corretora.com\", telefone: \"11 99999-0006\", cpf: \"222.333.444-55\", rua: \"Rua Nova\", numero: 1, cidade: \"Recife\" }) { usuario { id } } }"}

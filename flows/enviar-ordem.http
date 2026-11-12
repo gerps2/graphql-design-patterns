@@ -2,7 +2,19 @@
 POST http://localhost:5000/graphql
 Content-Type: application/json
 
-{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"PETR4\", quantidade: 10, preco: 38.5 }) { id ativo valor } }"}
+{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"PETR4\", quantidade: 10, preco: 38.5 }) { ordem { id ativo valor } } }"}
+
+### Ordem acima do saldo: o cliente recebe só "Unexpected Execution Error" (a Aula 6 resolve)
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"PETR4\", quantidade: 100000, preco: 38.5 }) { ordem { id } } }"}
+
+### Entrada inválida: o mesmo erro genérico, e o handler nem é chamado
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"petr\", quantidade: 0, preco: 38.5 }) { ordem { id } } }"}
 
 ### Ver o saldo e as ordens
 POST http://localhost:5000/graphql

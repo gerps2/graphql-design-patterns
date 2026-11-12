@@ -6,7 +6,7 @@ namespace Corretora.IntegrationTests.Features.Ordens.EnviarOrdem;
 public class EnviarOrdemConsistenciaTests(CorretoraApiFactory api)
 {
     private const string Ordem =
-        """mutation { enviarOrdem(input: { usuarioId: 1, ativo: "PETR4", quantidade: 10, preco: 38.5 }) { id } }""";
+        """mutation { enviarOrdem(input: { usuarioId: 1, ativo: "PETR4", quantidade: 10, preco: 38.5 }) { ordem { id } } }""";
 
     [Fact]
     public async Task EnviarOrdem_FalhaAoGravarAOrdem_NaoDeixaDebitoSemOrdem()

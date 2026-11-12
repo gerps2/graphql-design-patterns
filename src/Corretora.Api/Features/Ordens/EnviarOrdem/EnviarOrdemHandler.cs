@@ -7,12 +7,12 @@ namespace Corretora.Api.Features.Ordens.EnviarOrdem;
 public sealed class EnviarOrdemHandler(
     IContaRepository contas,
     IOrdemRepository ordens,
-    IUnitOfWork unitOfWork) : ICommandHandler<EnviarOrdemCommand, OrdemOutput>
+    IUnitOfWork unitOfWork) : ICommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>
 {
-    public async Task<OrdemOutput> Handle(EnviarOrdemCommand command, CancellationToken ct)
+    public async Task<EnviarOrdemOutput> Handle(EnviarOrdemCommand command, CancellationToken ct)
     {
         var conta = await contas.ObterPorUsuarioAsync(command.UsuarioId, ct)
-            ?? throw new InvalidOperationException($"O usuário {command.UsuarioId} não tem conta.");
+            ?? throw new ContaNaoEncontradaException(command.UsuarioId);
         conta.Debitar(command.Quantidade * command.Preco);
 
         var ordem = Ordem.Criar(command.UsuarioId, command.Ativo, command.Quantidade, command.Preco);
@@ -20,6 +20,6 @@ public sealed class EnviarOrdemHandler(
 
         await unitOfWork.SaveChangesAsync(ct);
 
-        return OrdemOutput.De(ordem);
+        return new EnviarOrdemOutput(OrdemOutput.De(ordem));
     }
 }

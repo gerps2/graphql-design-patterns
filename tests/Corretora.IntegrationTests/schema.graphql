@@ -9,13 +9,23 @@ type Query {
 }
 
 type Mutation {
-  enviarOrdem(input: EnviarOrdemInput!): Ordem! @cost(weight: "10")
+  enviarOrdem(input: EnviarOrdemInput!): EnviarOrdemPayload! @cost(weight: "10")
+  criarUsuario(input: CriarUsuarioInput!): CriarUsuarioPayload!
+    @cost(weight: "10")
+}
+
+type CriarUsuarioPayload {
+  usuario: Usuario
 }
 
 type Endereco {
   rua: String!
   numero: Int!
   cidade: String!
+}
+
+type EnviarOrdemPayload {
+  ordem: Ordem
 }
 
 type Ordem {
@@ -59,6 +69,16 @@ type Usuario {
   email: String!
   telefone: String!
   endereco: Endereco!
+}
+
+input CriarUsuarioInput {
+  nome: String!
+  email: String!
+  telefone: String!
+  cpf: String!
+  rua: String!
+  numero: Int!
+  cidade: String!
 }
 
 input EnviarOrdemInput {

@@ -18,4 +18,14 @@ public sealed class Usuario
     public string Cpf { get; private set; } = string.Empty;
 
     public Endereco Endereco { get; private set; } = null!;
+
+    public static Usuario Criar(string nome, string email, string telefone, string cpf, Endereco endereco) =>
+        new()
+        {
+            Nome = nome,
+            Email = email,
+            Telefone = telefone,
+            Cpf = cpf,
+            Endereco = endereco,
+        };
 }
