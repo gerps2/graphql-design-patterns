@@ -2,6 +2,7 @@ using Corretora.Api.Common.Decorators;
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Features.Ordens.EnviarOrdem;
 using FluentValidation;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Corretora.UnitTests.Common.Decorators;
 
@@ -12,7 +13,7 @@ public class ValidationDecoratorTests
 
     public ValidationDecoratorTests() =>
         _decorator = new ValidationDecorator.CommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>(
-            _inner, [new EnviarOrdemValidator()]);
+            _inner, [new EnviarOrdemValidator()], NullLoggerFactory.Instance);
 
     [Fact]
     public async Task Handle_EntradaInvalida_LancaValidationExceptionSemChamarOHandler()

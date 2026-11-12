@@ -7,9 +7,7 @@ using Corretora.Api.Database.Interceptors;
 using Corretora.Api.Database.Repositories;
 using Corretora.Api.Features.Contas;
 using Corretora.Api.Features.Ordens;
-using Corretora.Api.Features.Ordens.EnviarOrdem;
 using Corretora.Api.Features.Usuarios;
-using Corretora.Api.Features.Usuarios.CriarUsuario;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,16 +32,11 @@ builder.Services.AddScoped<IBanco, BancoPostgres>();
 builder.Services.AddMessaging(Assembly.GetExecutingAssembly());
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-// O embrulho escrito à mão: quem pede o handler do command recebe o decorator com o handler dentro.
-// Vem depois do AddMessaging porque, para a mesma interface, o último registro vence.
-builder.Services.AddScoped<ICommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>>(services =>
-    new ValidationDecorator.CommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>(
-        services.GetRequiredService<EnviarOrdemHandler>(),
-        services.GetServices<IValidator<EnviarOrdemCommand>>()));
-builder.Services.AddScoped<ICommandHandler<CriarUsuarioCommand, CriarUsuarioOutput>>(services =>
-    new ValidationDecorator.CommandHandler<CriarUsuarioCommand, CriarUsuarioOutput>(
-        services.GetRequiredService<CriarUsuarioHandler>(),
-        services.GetServices<IValidator<CriarUsuarioCommand>>()));
+// O pipeline do IMediator. Cada Decorate embrulha o que já existe, então o último fica por fora:
+// Logging → Validation → Handler.
+builder.Services.Decorate(typeof(ICommandHandler<,>), typeof(ValidationDecorator.CommandHandler<,>));
+builder.Services.Decorate(typeof(IQueryHandler<,>), typeof(LoggingDecorator.QueryHandler<,>));
+builder.Services.Decorate(typeof(ICommandHandler<,>), typeof(LoggingDecorator.CommandHandler<,>));
 
 builder.Services
     .AddGraphQLServer()

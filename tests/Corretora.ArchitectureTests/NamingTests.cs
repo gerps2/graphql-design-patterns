@@ -43,6 +43,21 @@ public class NamingTests : BaseTest
         result.IsSuccessful.Should().BeTrue(Falhas(result));
     }
 
+    // Todo decorator vale para um grupo de queries ou commands, então mora no Common. Nenhum fica preso a uma feature.
+    [Fact]
+    public void Decorators_MoramNoCommon()
+    {
+        // Arrange
+        var decorators = Types.InAssembly(ApiAssembly).That().HaveNameEndingWith("Decorator");
+
+        // Act
+        var result = decorators.Should().ResideInNamespace("Corretora.Api.Common.Decorators").GetResult();
+
+        // Assert
+        decorators.GetTypes().Select(t => t.Name).Should().Contain(["LoggingDecorator", "ValidationDecorator"]);
+        result.IsSuccessful.Should().BeTrue(Falhas(result));
+    }
+
     [Fact]
     public void Resolvers_SaoEstaticosEMoramNasFeatures()
     {
