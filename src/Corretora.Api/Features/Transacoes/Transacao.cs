@@ -6,4 +6,4 @@ public enum TipoTransacao
     Venda,
 }
 
-public record Transacao([property: GraphQLIgnore] int UsuarioId, int Id, string Ativo, TipoTransacao Tipo, decimal Valor, DateOnly Data);
+public record Transacao(int UsuarioId, int Id, string Ativo, TipoTransacao Tipo, decimal Valor, DateOnly Data);

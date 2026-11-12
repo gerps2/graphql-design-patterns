@@ -7,39 +7,20 @@ namespace Corretora.Api.Database;
 
 public sealed class BancoEmMemoria : IBanco
 {
-    private int _buscas;
+    public Usuario? BuscarUsuario(int id) =>
+        Usuarios.FirstOrDefault(u => u.Id == id);
 
-    public Usuario? BuscarUsuario(int id)
-    {
-        Interlocked.Increment(ref _buscas);
-        return Usuarios.FirstOrDefault(u => u.Id == id);
-    }
+    public List<Usuario> BuscarUsuarios() =>
+        Usuarios;
 
-    public List<Usuario> BuscarUsuarios()
-    {
-        Interlocked.Increment(ref _buscas);
-        return Usuarios;
-    }
+    public List<Posicao> BuscarPosicoes(int usuarioId) =>
+        Posicoes.Where(p => p.UsuarioId == usuarioId).ToList();
 
-    public List<Posicao> BuscarPosicoes(int usuarioId)
-    {
-        Interlocked.Increment(ref _buscas);
-        return Posicoes.Where(p => p.UsuarioId == usuarioId).ToList();
-    }
+    public List<Transacao> BuscarTransacoes(int usuarioId) =>
+        Transacoes.Where(t => t.UsuarioId == usuarioId).ToList();
 
-    public List<Transacao> BuscarTransacoes(int usuarioId)
-    {
-        Interlocked.Increment(ref _buscas);
-        return Transacoes.Where(t => t.UsuarioId == usuarioId).ToList();
-    }
-
-    public List<PosicaoRentabilidade> BuscarRentabilidade(int usuarioId)
-    {
-        Interlocked.Increment(ref _buscas);
-        return Rentabilidades.Where(r => r.UsuarioId == usuarioId).ToList();
-    }
-
-    public int LerEZerarBuscas() => Interlocked.Exchange(ref _buscas, 0);
+    public List<PosicaoRentabilidade> BuscarRentabilidade(int usuarioId) =>
+        Rentabilidades.Where(r => r.UsuarioId == usuarioId).ToList();
 
     private readonly List<Usuario> Usuarios =
     [

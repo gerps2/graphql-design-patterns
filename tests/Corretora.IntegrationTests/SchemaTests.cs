@@ -1,18 +1,20 @@
-using AwesomeAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Corretora.IntegrationTests;
 
-public class SchemaTests(WebApplicationFactory<Program> fabrica) : IClassFixture<WebApplicationFactory<Program>>
+public class SchemaTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
     [Fact]
-    public async Task O_schema_continua_igual_ao_contrato_salvo()
+    public async Task Schema_ComparadoAoContratoSalvo_ContinuaIgual()
     {
-        var cliente = fabrica.CreateClient();
-
-        var schemaAtual = await cliente.GetStringAsync("/graphql?sdl");
+        // Arrange
+        var client = factory.CreateClient();
         var contrato = await File.ReadAllTextAsync("schema.graphql");
 
+        // Act
+        var schemaAtual = await client.GetStringAsync("/graphql?sdl");
+
+        // Assert
         Normalizar(schemaAtual).Should().Be(Normalizar(contrato));
     }
 

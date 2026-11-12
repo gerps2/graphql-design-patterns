@@ -12,5 +12,4 @@ public interface IBanco
     List<Posicao> BuscarPosicoes(int usuarioId);
     List<Transacao> BuscarTransacoes(int usuarioId);
     List<PosicaoRentabilidade> BuscarRentabilidade(int usuarioId);
-    int LerEZerarBuscas();
 }

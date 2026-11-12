@@ -1,17 +1,20 @@
-### Carteira pelo REST
-GET http://localhost:5000/web/usuarios/1/carteira
-
-### Carteira pelo GraphQL
+### Carteira: a maior posição primeiro, com a participação calculada
 POST http://localhost:5000/graphql
 Content-Type: application/json
 
 {"query":"{ usuario(id: 1) { carteira { ativo saldo participacao } } }"}
 
-### Transações pelo REST, mais recentes primeiro
-GET http://localhost:5000/web/usuarios/1/transacoes
-
-### Transações pelo GraphQL, mais recentes primeiro
+### Transações: as mais recentes primeiro
 POST http://localhost:5000/graphql
 Content-Type: application/json
 
 {"query":"{ usuario(id: 1) { transacoes { id data ativo } } }"}
+
+### A tela inicial em uma viagem
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"query TelaInicial { usuario(id: 1) { nome carteira { ativo saldo } transacoes { ativo valor } rentabilidade { ativo percentualMes } } }"}
+
+### O contrato em SDL
+GET http://localhost:5000/graphql?sdl

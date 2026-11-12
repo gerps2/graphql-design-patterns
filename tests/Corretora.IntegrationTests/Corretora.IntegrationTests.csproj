@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="AwesomeAssertions" />
     <None Update="schema.graphql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
