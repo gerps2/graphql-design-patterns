@@ -22,6 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "flows", "flows", "{A1F0C3D2
 		flows\enviar-ordem.http = flows\enviar-ordem.http
 		flows\regra-de-leitura.http = flows\regra-de-leitura.http
 		flows\tela-inicial.http = flows\tela-inicial.http
+		flows\ultimas-ordens.http = flows\ultimas-ordens.http
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A1F0C3D2-6B7E-4E11-9C55-0D2C4B7A1E03}"

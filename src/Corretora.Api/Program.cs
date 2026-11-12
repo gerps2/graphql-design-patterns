@@ -3,6 +3,7 @@ using Corretora.Api.Common.Decorators;
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Database;
 using Corretora.Api.Database.Interceptors;
+using Corretora.Api.Features.Ordens.ObterDono;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -33,6 +34,9 @@ builder.Services.AddScoped<IBanco, BancoPostgres>();
 builder.Services.AddPersistencia(builder.Configuration);
 builder.Services.AddMessaging(Assembly.GetExecutingAssembly());
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+// Como no material: o DataLoader escrito à mão, registrado como qualquer serviço.
+builder.Services.AddScoped<UsuarioBatchDataLoader>();
 
 // O pipeline do IMediator. Cada Decorate embrulha o que já existe, então o último fica por fora:
 // Logging → Validation → Handler.

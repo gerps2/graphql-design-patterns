@@ -16,6 +16,10 @@ public sealed class BancoPostgres(CorretoraDbContext db) : IBanco
     public Task<List<Usuario>> BuscarUsuarios(CancellationToken ct) =>
         db.Usuarios.AsNoTracking().OrderBy(u => u.Id).ToListAsync(ct);
 
+    // Uma consulta para vários ids: WHERE id = ANY (@ids), o IN do Postgres.
+    public Task<List<Usuario>> BuscarUsuarios(IReadOnlyList<int> ids, CancellationToken ct) =>
+        db.Usuarios.AsNoTracking().Where(u => ids.Contains(u.Id)).ToListAsync(ct);
+
     public Task<List<Posicao>> BuscarPosicoes(int usuarioId, CancellationToken ct) =>
         db.Posicoes.AsNoTracking().Where(p => p.UsuarioId == usuarioId).ToListAsync(ct);
 
@@ -30,4 +34,7 @@ public sealed class BancoPostgres(CorretoraDbContext db) : IBanco
 
     public Task<List<Ordem>> BuscarOrdens(int usuarioId, CancellationToken ct) =>
         db.Ordens.AsNoTracking().Where(o => o.UsuarioId == usuarioId).OrderByDescending(o => o.Id).ToListAsync(ct);
+
+    public Task<List<Ordem>> BuscarUltimasOrdens(int quantidade, CancellationToken ct) =>
+        db.Ordens.AsNoTracking().OrderByDescending(o => o.Id).Take(quantidade).ToListAsync(ct);
 }

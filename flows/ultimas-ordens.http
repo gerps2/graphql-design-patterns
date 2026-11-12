@@ -1,0 +1,12 @@
+### As últimas ordens, cada uma com o dono da conta
+# Olhe no terminal do make run quantas consultas de usuarios saem, e a linha "Banco: N consultas neste request".
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"query UltimasOrdens { ultimasOrdens(quantidade: 5) { ativo valor dono { nome } } }"}
+
+### Uma ordem de cada usuário, para a lista ter donos diferentes
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"mutation { a: enviarOrdem(input: { usuarioId: 1, ativo: \"PETR4\", quantidade: 1, preco: 10 }) { ordem { id } } b: enviarOrdem(input: { usuarioId: 2, ativo: \"VALE3\", quantidade: 1, preco: 10 }) { ordem { id } } c: enviarOrdem(input: { usuarioId: 3, ativo: \"ITUB4\", quantidade: 1, preco: 10 }) { ordem { id } } }"}

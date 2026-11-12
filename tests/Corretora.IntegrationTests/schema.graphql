@@ -4,6 +4,7 @@ schema {
 }
 
 type Query {
+  ultimasOrdens(quantidade: Int! = 10): [Ordem!]! @cost(weight: "10")
   usuario(id: Int!): Usuario @cost(weight: "10")
   usuarios: [Usuario!]! @cost(weight: "10")
 }
@@ -29,6 +30,7 @@ type EnviarOrdemPayload {
 }
 
 type Ordem {
+  dono: Usuario @cost(weight: "10")
   id: Int!
   usuarioId: Int!
   ativo: String!
