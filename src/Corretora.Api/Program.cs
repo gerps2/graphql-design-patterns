@@ -12,12 +12,18 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<ConcorrenciaOptions>(builder.Configuration.GetSection("Concorrencia"));
-builder.Services.AddDbContext<CorretoraDbContext>(options =>
+builder.Services.AddContagemDeConsultas();
+builder.Services.AddDbContext<CorretoraDbContext>((services, options) =>
 {
     options
         .UseNpgsql(builder.Configuration.GetConnectionString("Corretora"))
         .UseSnakeCaseNamingConvention()
-        .ReplaceService<IModelCacheKeyFactory, ModeloPorEstrategia>();
+        .ReplaceService<IModelCacheKeyFactory, ModeloPorEstrategia>()
+        .AddInterceptors(ContadorDeConsultasInterceptor.DoRequestAtual(services));
+
+    // Cada SQL enviado aparece no terminal. Ligado só em desenvolvimento (appsettings.Development.json).
+    if (builder.Configuration.GetValue<bool>("Aula:MostrarSql"))
+        options.LogTo(Console.WriteLine, [DbLoggerCategory.Database.Name], LogLevel.Information);
 
     if (builder.Configuration.GetValue<bool>("Aula:FalharAoGravarOrdem"))
         options.AddInterceptors(new FalhaEntreGravacoesInterceptor());
@@ -43,6 +49,7 @@ builder.Services
 
 var app = builder.Build();
 
+app.UseContagemDeConsultas();
 app.MapGraphQL();
 
 app.Run();

@@ -44,10 +44,15 @@ falha:
 build:
 	dotnet build Corretora.sln
 
-# Sobe a API sozinha em cada cenário (falha, sem trava, pessimista, otimista). Precisa de make up e make migrar.
+# Sobe a API sozinha e mede com o k6. Precisa de make up e make migrar.
+# AULA=05 (padrão): consultas e tempo da tela inicial. PASSOS="0 atual" compara o passo 0 com o código atual.
+# AULA=04: consistência da escrita em cada cenário (falha, sem trava, pessimista, otimista).
+AULA ?= 05
+PASSOS ?= atual
+
 medir:
-	PROVEDOR=$(PROVEDOR) bash scripts/medir-aula-04.sh
-	$(ABRIR) relatorio-aula-04.html
+	PROVEDOR=$(PROVEDOR) PASSOS="$(PASSOS)" bash scripts/medir-aula-$(AULA).sh
+	$(ABRIR) relatorio-aula-$(AULA).html
 
 test:
 	dotnet test Corretora.sln

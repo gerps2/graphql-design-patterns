@@ -6,7 +6,8 @@ make migrar     cria as tabelas e a carga inicial
 make run        sobe a API em http://localhost:5000 (ESTRATEGIA=SemTrava|Pessimista|Otimista)
 make run-dapper sobe a API gravando com Dapper no lugar do EF Core
 make falha      sobe a API com uma falha ao gravar a ordem (só para a aula)
-make medir      mede a consistência da escrita com o k6 (sobe a API sozinho) e abre o relatório; PROVEDOR=Dapper mede o Dapper
+make medir      mede a tela inicial com o k6 (consultas ao banco e tempo; sobe a API sozinho) e abre o relatório
+                PASSOS="0 atual" compara o passo 0 da Aula 5 com o código atual; AULA=04 mede a escrita da Aula 4
 make build      compila a solução
 make test       roda todos os testes (o Postgres dos testes sobe sozinho, com Testcontainers)
 make test-unit  roda só os testes de unidade, sem subir a API
@@ -23,12 +24,17 @@ make clean      limpa os artefatos
 | 2 | Schemas e o padrão Resolver | `feat/aula-02-schemas-resolvers` |
 | 3 | Queries e CQRS | `feat/aula-03-queries-cqrs` |
 | 4 | Mutations, Repository e Unit of Work | `feat/aula-04-mutations-repository` |
+| 5 | Performance com DataLoader | `feat/aula-05-dataloader` |
 
 Antes da primeira execução: Docker rodando, `make up` e `make migrar`.
 
 Abra `Corretora.sln` no Visual Studio 2026 ou no Rider e rode o perfil `http`. No VS Code, use `make run` e a extensão REST Client. A API sobe sempre em `http://localhost:5000`, e os arquivos de `flows/` funcionam nas três ferramentas.
 
 A partir da Aula 4 a API é só GraphQL. As medições das Aulas 1 a 3 continuam nas branches delas.
+
+## Quantas consultas cada request faz
+
+Em desenvolvimento, o `make run` escreve no terminal cada SQL enviado ao banco (`Aula:MostrarSql`, com o `LogTo` do EF Core) e, no fim do request, a linha `Banco: N consultas neste request`. O mesmo número volta no header `X-Consultas-Banco` da resposta: é o que o k6 e os testes leem. Quem conta é o `ContadorDeConsultasInterceptor`, em `Database/Interceptors/`.
 
 ## Como o código se organiza
 

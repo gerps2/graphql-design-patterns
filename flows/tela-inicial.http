@@ -1,0 +1,7 @@
+### A tela inicial: cada usuário com a carteira e as transações
+# Olhe o terminal do make run: o SQL de cada consulta e, no fim, "Banco: N consultas neste request".
+# A resposta traz o mesmo número no header X-Consultas-Banco.
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"query TelaInicial { usuarios { nome carteira { ativo saldo } transacoes { ativo valor } } }"}

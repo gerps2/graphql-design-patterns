@@ -14,8 +14,12 @@ public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsync
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18-alpine").Build();
     private readonly ConcurrentDictionary<string, WebApplicationFactory<Program>> _variacoes = new();
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder) =>
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
         builder.UseSetting("ConnectionStrings:Corretora", _postgres.GetConnectionString());
+        // O SQL no terminal é para a aula. Nos testes, quem conta é o header do contador.
+        builder.UseSetting("Aula:MostrarSql", "false");
+    }
 
     public async Task InitializeAsync()
     {
