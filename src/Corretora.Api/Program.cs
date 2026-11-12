@@ -1,7 +1,11 @@
 using System.Reflection;
+using Corretora.Api.Common.Data;
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Database;
 using Corretora.Api.Database.Interceptors;
+using Corretora.Api.Database.Repositories;
+using Corretora.Api.Features.Contas;
+using Corretora.Api.Features.Ordens;
 using Microsoft.EntityFrameworkCore;
 
 [assembly: Module("Corretora")]
@@ -17,6 +21,9 @@ builder.Services.AddDbContext<CorretoraDbContext>(options =>
     if (builder.Configuration.GetValue<bool>("Aula:FalharAoGravarOrdem"))
         options.AddInterceptors(new FalhaEntreGravacoesInterceptor());
 });
+builder.Services.AddScoped<IUnitOfWork>(services => services.GetRequiredService<CorretoraDbContext>());
+builder.Services.AddScoped<IContaRepository, ContaRepository>();
+builder.Services.AddScoped<IOrdemRepository, OrdemRepository>();
 builder.Services.AddScoped<IBanco, BancoPostgres>();
 builder.Services.AddMessaging(Assembly.GetExecutingAssembly());
 
