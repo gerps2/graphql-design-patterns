@@ -45,13 +45,14 @@ build:
 	dotnet build Corretora.sln
 
 # Sobe a API sozinha e mede com o k6. Precisa de make up e make migrar.
-# AULA=05 (padrão): consultas e tempo da tela inicial. PASSOS="0 atual" compara o passo 0 com o código atual.
+# AULA=05 (padrão): consultas e tempo das telas, do passo 0 (antes) e do código atual (depois).
+#   PASSOS="0 1 2 3 4 5 6 atual" mede passo a passo; PASSOS=atual mede só o código de agora.
 # AULA=04: consistência da escrita em cada cenário (falha, sem trava, pessimista, otimista).
 AULA ?= 05
-PASSOS ?= atual
+PASSOS ?= 0 atual
 
 medir:
-	PROVEDOR=$(PROVEDOR) PASSOS="$(PASSOS)" bash scripts/medir-aula-$(AULA).sh
+	PROVEDOR=$(PROVEDOR) PASSOS="$(PASSOS)" PORTA="$(PORTA)" bash scripts/medir-aula-$(AULA).sh
 	$(ABRIR) relatorio-aula-$(AULA).html
 
 test:
