@@ -6,6 +6,6 @@ namespace Corretora.Api.Features.Ordens.ObterDono;
 [ObjectType<OrdemOutput>]
 public static partial class ObterDonoResolver
 {
-    public static Task<UsuarioOutput?> GetDono([Parent] OrdemOutput ordem, UsuarioBatchDataLoader dataLoader, CancellationToken ct) =>
-        dataLoader.LoadAsync(ordem.UsuarioId, ct);
+    public static Task<UsuarioOutput?> GetDono([Parent] OrdemOutput ordem, IUsuarioByIdDataLoader usuarioById, CancellationToken ct) =>
+        usuarioById.LoadAsync(ordem.UsuarioId, ct);
 }

@@ -19,7 +19,7 @@ public class UltimasOrdensTests(CorretoraApiFactory api)
     }
 
     [Fact]
-    public async Task UltimasOrdens_DataLoaderDoMaterialRegistradoAMao_NaoAgrupaEFazUmaConsultaPorOrdem()
+    public async Task UltimasOrdens_DataLoaderGerado_BuscaTodosOsDonosNumaConsultaSo()
     {
         // Arrange
         await CriarOrdensAsync(1, 2, 3);
@@ -30,6 +30,9 @@ public class UltimasOrdensTests(CorretoraApiFactory api)
 
         // Assert
         json.TryGetProperty("errors", out var erros).Should().BeFalse(erros.ToString());
-        consultas.Should().Be(1 + 3, "o registro comum no DI deixa o DataLoader em auto-dispatch: \"will no longer batch\"");
+        json.GetProperty("data").GetProperty("ultimasOrdens").EnumerateArray()
+            .Select(o => o.GetProperty("dono").GetProperty("nome").GetString())
+            .Should().Equal("Carla Dias", "Bruno Lima", "Ana Souza");
+        consultas.Should().Be(2, "uma consulta das ordens e uma dos donos, com WHERE id = ANY (os ids)");
     }
 }
