@@ -1,4 +1,4 @@
-.PHONY: up obs down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias tempo-real test test-unit test-arch test-ordem clean
+.PHONY: up obs servicos run-notificacoes down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias tempo-real test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -17,8 +17,13 @@ up:
 obs:
 	$(COMPOSE) --profile observabilidade up -d --wait
 
+# A API e o serviço de notificações em contêineres (Aula 8): API em 5000, notificações em 5200.
+# Pare antes o make run, porque a porta 5000 passa a ser do contêiner.
+servicos:
+	$(COMPOSE) --profile servicos up -d --build --wait
+
 down:
-	$(COMPOSE) --profile observabilidade down
+	$(COMPOSE) --profile observabilidade --profile servicos down
 
 migrar:
 	dotnet tool restore
@@ -42,6 +47,10 @@ PORTA ?= 5000
 
 run:
 	dotnet run --project src/Corretora.Api --urls http://localhost:$(PORTA) -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR) --GraphQL:DetalhesDaExcecao=$(DETALHES) --GraphQL:PermitirIntrospeccao=$(INTROSPECCAO)
+
+# O serviço de notificações fora do contêiner, na porta 5200 (Aula 8).
+run-notificacoes:
+	dotnet run --project src/Corretora.Notificacoes
 
 # A mesma API gravando com Dapper: SQL escrito à mão, o handler não muda.
 run-dapper:

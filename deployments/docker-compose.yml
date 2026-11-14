@@ -30,6 +30,39 @@ services:
       timeout: 3s
       retries: 30
 
+  # ---------- serviços (Aula 8) ----------
+  # A API da corretora e o serviço de notificações em contêineres. Sobem com make servicos.
+  # O BFF fica fora: é o código que a gente escreve na aula, e roda com make run-bff.
+  corretora-api:
+    build:
+      context: ..
+      dockerfile: src/Corretora.Api/Dockerfile
+    profiles: [servicos]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__Corretora: Host=postgres;Port=5432;Database=corretora;Username=corretora;Password=corretora_dev
+      ConnectionStrings__Redis: redis:6379
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      Aula__MostrarSql: "false"
+    ports: ["5000:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  notificacoes:
+    build:
+      context: ..
+      dockerfile: src/Corretora.Notificacoes/Dockerfile
+    profiles: [servicos]
+    environment:
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__Redis: redis:6379
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    ports: ["5200:8080"]
+    depends_on:
+      redis: { condition: service_healthy }
+
   # ---------- observabilidade (Aula 6) ----------
   # A mesma stack do lab de observabilidade: a API fala OTLP só com o Collector, e ele distribui.
   # Sobe com make obs (perfil "observabilidade"); o make up continua subindo só o banco e o cache.

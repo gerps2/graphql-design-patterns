@@ -20,6 +20,7 @@ make test-unit  roda só os testes de unidade, sem subir a API
 make test-arch  roda só os testes de arquitetura (as regras do slice)
 make test-ordem roda só os testes da mutation enviarOrdem
 make banco-zerar  apaga o banco e recria do zero
+make servicos   sobe a API (5000) e o serviço de notificações (5200) em contêineres (Aula 8)
 make obs        sobe a observabilidade: Collector, Prometheus, Loki, Jaeger e Grafana (http://localhost:3000)
 make down       para tudo o que o Compose subiu
 make clean      limpa os artefatos

@@ -7,6 +7,7 @@ using Corretora.Api.Database;
 using Corretora.Api.Common.Events;
 using Corretora.Api.GraphQL.Errors;
 using Corretora.Api.GraphQL.Subscriptions;
+using Corretora.Api.Integracao;
 using Corretora.Api.Observabilidade;
 using FluentValidation;
 using HotChocolate;
@@ -98,7 +99,12 @@ var graphql = builder.Services
 if (string.IsNullOrEmpty(redis))
     graphql.AddInMemorySubscriptions();
 else
+{
     graphql.AddRedisSubscriptions(_ => ConnectionMultiplexer.Connect(redis));
+    // Aula 8: todo evento também sai para fora, no Redis, para o serviço de notificações ouvir.
+    builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redis));
+    builder.Services.Decorate<IEventPublisher, RedisIntegracaoPublisher>();
+}
 
 var app = builder.Build();
 

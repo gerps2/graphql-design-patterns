@@ -1,0 +1,13 @@
+### O que o app mobile faz hoje para montar a tela inicial: duas chamadas, para dois serviços.
+# Suba antes: make up, make migrar, make servicos.
+
+### 1. A API da corretora (GraphQL): o nome, o saldo e a carteira
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"{ usuario(id: 1) { nome saldoDisponivel carteira { ativo saldo } } }"}
+
+### 2. O serviço de notificações (REST): os avisos
+GET http://localhost:5200/notificacoes?usuarioIds=1
+
+### E o patrimônio (saldo + soma da carteira) o app calcula na tela.
