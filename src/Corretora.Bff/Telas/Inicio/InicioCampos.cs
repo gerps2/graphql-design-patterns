@@ -1,4 +1,4 @@
-using Corretora.Bff.Servicos;
+using GreenDonut;
 using HotChocolate;
 using HotChocolate.Types;
 
@@ -13,9 +13,9 @@ public static partial class InicioCampos
 
     // Os avisos moram em outro serviço. Para o app, é só mais um campo da tela.
     public static async Task<IReadOnlyList<Aviso>> GetAvisosAsync(
-        [Parent] Inicio inicio, NotificacoesClient notificacoes, CancellationToken ct, int ultimos = 10)
+        [Parent] Inicio inicio, IAvisosByUsuarioIdDataLoader avisosByUsuarioId, CancellationToken ct, int ultimos = 10)
     {
-        var avisos = await notificacoes.DosUsuariosAsync([inicio.UsuarioId], ct);
+        var avisos = await avisosByUsuarioId.LoadAsync(inicio.UsuarioId, ct) ?? [];
         return avisos.Take(ultimos).Select(a => new Aviso(a.Texto, a.CriadoEm)).ToList();
     }
 }

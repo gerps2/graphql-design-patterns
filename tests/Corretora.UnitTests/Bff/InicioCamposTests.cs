@@ -1,5 +1,6 @@
 using Corretora.Bff.Servicos;
 using Corretora.Bff.Telas.Inicio;
+using GreenDonut;
 
 namespace Corretora.UnitTests.Bff;
 
@@ -18,19 +19,34 @@ public class InicioCamposTests
     }
 
     [Fact]
-    public async Task GetAvisosAsync_ServicoDeNotificacoes_TraduzParaOFormatoDaTela()
+    public async Task GetAvisosAsync_AvisosDoServico_TraduzParaOFormatoDaTela()
     {
         // Arrange
-        var servico = new ServicoFalso("""
-            [{"usuarioId":1,"texto":"Ordem 7 enviada","criadoEm":"2026-11-14T10:00:00Z"},
-             {"usuarioId":1,"texto":"Bem-vindo","criadoEm":"2026-11-13T10:00:00Z"}]
-            """);
+        var avisosByUsuarioId = Substitute.For<IAvisosByUsuarioIdDataLoader>();
+        avisosByUsuarioId.LoadAsync(1, Arg.Any<CancellationToken>()).Returns(
+        [
+            new AvisoDoServico(1, "Ordem 7 enviada", DateTimeOffset.Parse("2026-11-14T10:00:00Z")),
+            new AvisoDoServico(1, "Bem-vindo", DateTimeOffset.Parse("2026-11-13T10:00:00Z")),
+        ]);
 
         // Act
-        var avisos = await InicioCampos.GetAvisosAsync(Ana, new NotificacoesClient(servico.Cliente()), CancellationToken.None, ultimos: 1);
+        var avisos = await InicioCampos.GetAvisosAsync(Ana, avisosByUsuarioId, CancellationToken.None, ultimos: 1);
 
         // Assert
-        servico.Chamadas.Should().Equal("/notificacoes?usuarioIds=1");
         avisos.Should().ContainSingle().Which.Texto.Should().Be("Ordem 7 enviada");
+    }
+
+    [Fact]
+    public async Task GetAvisosAsync_UsuarioSemAvisos_DevolveListaVazia()
+    {
+        // Arrange
+        var avisosByUsuarioId = Substitute.For<IAvisosByUsuarioIdDataLoader>();
+        avisosByUsuarioId.LoadAsync(1, Arg.Any<CancellationToken>()).Returns((AvisoDoServico[]?)null);
+
+        // Act
+        var avisos = await InicioCampos.GetAvisosAsync(Ana, avisosByUsuarioId, CancellationToken.None);
+
+        // Assert
+        avisos.Should().BeEmpty();
     }
 }
