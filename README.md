@@ -84,6 +84,10 @@ O inesperado (banco fora do ar, bug) chega como `INTERNAL_ERROR` com um `traceId
 
 Com `make obs`, a API manda trace, métrica e log em OTLP para o OpenTelemetry Collector (`OTEL_EXPORTER_OTLP_ENDPOINT` no `appsettings.Development.json`). O Collector manda a métrica para o Prometheus, o log para o Loki e o trace para o Jaeger. O Grafana, em http://localhost:3000, lê os três: o painel "Corretora: GraphQL" mostra requests, tempo e erros por código, e no Explore o `traceId` de um erro abre o trace inteiro. Trocar de ferramenta (Datadog, por exemplo) é mudar o exporter no `deployments/observabilidade/otel-collector/config.yaml`, sem tocar na API.
 
+## Tempo real
+
+A partir da Aula 7, a API avisa o cliente pelo WebSocket, com subscriptions: `cotacaoAtualizada(ativo)` recebe cada preço novo da bolsa simulada, e `ordemEnviada(usuarioId)` recebe a ordem gravada pelo `enviarOrdem`. Quem publica fala com o `IEventPublisher` (`Common/Events`); só a implementação em `GraphQL/Subscriptions` conhece o Hot Chocolate. Com `ConnectionStrings:Redis` configurado, o provedor é o Redis, e todas as instâncias da API recebem os eventos; sem ele, o provedor fica em memória. O Redis entrega no máximo uma vez: o cliente que estava desconectado perde o evento e deve consultar de novo ao voltar.
+
 ## Cache do saldo
 
 A partir da Aula 5, o saldo fica no HybridCache: L1 na memória da API e L2 no Redis do `make up`. Uma ordem apaga do cache tudo o que tem a etiqueta do usuário (`usuario:<id>`). Sem `ConnectionStrings:Redis`, o cache continua só na memória.

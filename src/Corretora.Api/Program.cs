@@ -11,6 +11,7 @@ using Corretora.Api.Observabilidade;
 using FluentValidation;
 using HotChocolate;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using StackExchange.Redis;
 using Microsoft.EntityFrameworkCore;
 
 [assembly: Module("Corretora")]
@@ -68,12 +69,10 @@ builder.Services.Decorate(typeof(IQueryHandler<,>), typeof(CachingDecorator.Quer
 builder.Services.Decorate(typeof(IQueryHandler<,>), typeof(LoggingDecorator.QueryHandler<,>));
 builder.Services.Decorate(typeof(ICommandHandler<,>), typeof(LoggingDecorator.CommandHandler<,>));
 
-builder.Services
+var graphql = builder.Services
     .AddGraphQLServer()
     .AddCorretora()
     .AddMutationConventions(applyToAllMutations: true)
-    // Subscriptions: os eventos passam por um provedor. Em memória, só esta instância da API enxerga.
-    .AddInMemorySubscriptions()
     // A interface Error do schema ganha o code, além da message.
     .AddErrorInterfaceType<ICorretoraError>()
     // Proteção: no GraphQL o cliente monta a query, e estes limites dizem até onde ele pode ir.
@@ -93,6 +92,13 @@ builder.Services
     .AddErrorFilter<CorretoraErrorFilter>()
     // Cada operação GraphQL vira um trace com o nome da operação, e cada resolver, um trecho dele.
     .AddInstrumentation();
+
+// Subscriptions: os eventos passam por um provedor. Com Redis, todas as instâncias da API ouvem o mesmo canal.
+// Sem Redis configurado, o provedor fica em memória, e só esta instância enxerga os eventos.
+if (string.IsNullOrEmpty(redis))
+    graphql.AddInMemorySubscriptions();
+else
+    graphql.AddRedisSubscriptions(_ => ConnectionMultiplexer.Connect(redis));
 
 var app = builder.Build();
 
