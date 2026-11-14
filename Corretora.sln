@@ -37,6 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A1F0
 		scripts\relatorio-aula-05.js = scripts\relatorio-aula-05.js
 		scripts\erros-aula-06.js = scripts\erros-aula-06.js
 		scripts\polling-aula-07.js = scripts\polling-aula-07.js
+		scripts\duas-instancias-aula-07.js = scripts\duas-instancias-aula-07.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"

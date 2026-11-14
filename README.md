@@ -3,13 +3,14 @@ Aplicação da disciplina GraphQL e Design Patterns (FIAP PosTech).
 ```
 make up         sobe o Postgres (porta 5433) e o Redis (porta 6379) no Docker
 make migrar     cria as tabelas e a carga inicial
-make run        sobe a API em http://localhost:5000 (ESTRATEGIA=SemTrava|Pessimista|Otimista; DETALHES=true mostra a exceção na resposta; INTROSPECCAO=false fecha o schema)
+make run        sobe a API em http://localhost:5000 (PORTA=5001 sobe uma segunda instância) (ESTRATEGIA=SemTrava|Pessimista|Otimista; DETALHES=true mostra a exceção na resposta; INTROSPECCAO=false fecha o schema)
 make run-dapper sobe a API gravando com Dapper no lugar do EF Core
 make falha      sobe a API com uma falha ao gravar a ordem (só para a aula)
 make falha-rentabilidade  sobe a API com a rentabilidade falhando: a resposta chega pela metade (só para a aula)
 make medir      mede as telas com o k6 (consultas ao banco e tempo; sobe a API sozinho) e abre o relatório
                 compara o passo 0 da Aula 5 com o código atual; PASSOS="0 1 2 3 4 5 6 atual" mede passo a passo
                 AULA=04 mede a escrita da Aula 4; PORTA=<outra> mede numa porta que não seja a 5000
+make duas-instancias  assina as ordens na instância 5001 e envia uma ordem pela 5000: o aviso chega? (com as duas de pé)
 make polling    dez clientes perguntam a cotação a cada segundo; o k6 conta quantas respostas voltaram iguais (com a API de pé)
 make erros      faz cada pedido que dá errado uma vez e mostra o que o cliente recebe (com a API de pé)
 make build      compila a solução

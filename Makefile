@@ -1,4 +1,4 @@
-.PHONY: up obs down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling test test-unit test-arch test-ordem clean
+.PHONY: up obs down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -37,9 +37,11 @@ PROVEDOR ?= EfCore
 DETALHES ?= false
 # INTROSPECCAO=false fecha o schema como em produção (o Nitro deixa de ver os tipos).
 INTROSPECCAO ?= true
+# PORTA=5001 sobe uma segunda instância da API ao lado da primeira (Aula 7).
+PORTA ?= 5000
 
 run:
-	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR) --GraphQL:DetalhesDaExcecao=$(DETALHES) --GraphQL:PermitirIntrospeccao=$(INTROSPECCAO)
+	dotnet run --project src/Corretora.Api --urls http://localhost:$(PORTA) -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR) --GraphQL:DetalhesDaExcecao=$(DETALHES) --GraphQL:PermitirIntrospeccao=$(INTROSPECCAO)
 
 # A mesma API gravando com Dapper: SQL escrito à mão, o handler não muda.
 run-dapper:
@@ -76,6 +78,11 @@ erros:
 DURACAO ?= 60s
 polling:
 	k6 run --quiet -e DURACAO=$(DURACAO) scripts/polling-aula-07.js
+
+# Assina as ordens da Ana na instância da porta 5001 e envia uma ordem pela instância da 5000.
+# Precisa das duas de pé: make run e, em outro terminal, make run PORTA=5001.
+duas-instancias:
+	k6 run --quiet scripts/duas-instancias-aula-07.js
 
 test:
 	dotnet test Corretora.sln
