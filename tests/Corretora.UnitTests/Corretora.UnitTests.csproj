@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Corretora.Api\Corretora.Api.csproj" />
+    <ProjectReference Include="..\..\src\Corretora.Bff\Corretora.Bff.csproj" />
   </ItemGroup>
 
   <ItemGroup>

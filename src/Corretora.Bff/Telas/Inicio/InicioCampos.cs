@@ -1,0 +1,21 @@
+using Corretora.Bff.Servicos;
+using HotChocolate;
+using HotChocolate.Types;
+
+namespace Corretora.Bff.Telas.Inicio;
+
+[ObjectType<Inicio>]
+public static partial class InicioCampos
+{
+    // O patrimônio é calculado aqui, no BFF. O app só mostra.
+    public static decimal GetPatrimonio([Parent] Inicio inicio) =>
+        inicio.SaldoDisponivel + inicio.Carteira.Sum(p => p.Valor);
+
+    // Os avisos moram em outro serviço. Para o app, é só mais um campo da tela.
+    public static async Task<IReadOnlyList<Aviso>> GetAvisosAsync(
+        [Parent] Inicio inicio, NotificacoesClient notificacoes, CancellationToken ct, int ultimos = 10)
+    {
+        var avisos = await notificacoes.DosUsuariosAsync([inicio.UsuarioId], ct);
+        return avisos.Take(ultimos).Select(a => new Aviso(a.Texto, a.CriadoEm)).ToList();
+    }
+}

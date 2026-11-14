@@ -1,6 +1,14 @@
-### A tela inicial do app pelo BFF: uma chamada só.
+### A tela inicial pelo BFF: uma chamada só, com dado da API e do serviço de notificações.
 # Suba antes: make up, make servicos e, em outro terminal, make run-bff.
+
+### Celular: o resumo, com o patrimônio já calculado e os três últimos avisos
 POST http://localhost:5100/graphql
 Content-Type: application/json
 
-{"query":"query Inicio { inicio(usuarioId: 1) { nome saldoDisponivel carteira { ativo valor } } }"}
+{"query":"query InicioCelular { inicio(usuarioId: 1) { nome patrimonio avisos(ultimos: 3) { texto } } }"}
+
+### Web: o detalhe, com a carteira e todos os avisos
+POST http://localhost:5100/graphql
+Content-Type: application/json
+
+{"query":"query InicioWeb { inicio(usuarioId: 1) { nome saldoDisponivel patrimonio carteira { ativo quantidade valor } avisos { texto criadoEm } } }"}
