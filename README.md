@@ -10,6 +10,7 @@ make falha-rentabilidade  sobe a API com a rentabilidade falhando: a resposta ch
 make medir      mede as telas com o k6 (consultas ao banco e tempo; sobe a API sozinho) e abre o relatório
                 compara o passo 0 da Aula 5 com o código atual; PASSOS="0 1 2 3 4 5 6 atual" mede passo a passo
                 AULA=04 mede a escrita da Aula 4; PORTA=<outra> mede numa porta que não seja a 5000
+make tempo-real polling contra subscription: mensagens, bytes e atraso até ver o preço novo (com a API de pé)
 make duas-instancias  assina as ordens na instância 5001 e envia uma ordem pela 5000: o aviso chega? (com as duas de pé)
 make polling    dez clientes perguntam a cotação a cada segundo; o k6 conta quantas respostas voltaram iguais (com a API de pé)
 make erros      faz cada pedido que dá errado uma vez e mostra o que o cliente recebe (com a API de pé)

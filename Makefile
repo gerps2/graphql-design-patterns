@@ -1,4 +1,4 @@
-.PHONY: up obs down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias test test-unit test-arch test-ordem clean
+.PHONY: up obs down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias tempo-real test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -78,6 +78,12 @@ erros:
 DURACAO ?= 60s
 polling:
 	k6 run --quiet -e DURACAO=$(DURACAO) scripts/polling-aula-07.js
+
+# Polling contra subscription: dez clientes de cada jeito olhando a PETR4 ao mesmo tempo, por SEGUNDOS segundos.
+# Compara mensagens, bytes e o atraso até ver o preço novo. Precisa da API de pé (make run).
+SEGUNDOS ?= 60
+tempo-real:
+	k6 run --quiet -e SEGUNDOS=$(SEGUNDOS) scripts/tempo-real-aula-07.js
 
 # Assina as ordens da Ana na instância da porta 5001 e envia uma ordem pela instância da 5000.
 # Precisa das duas de pé: make run e, em outro terminal, make run PORTA=5001.
