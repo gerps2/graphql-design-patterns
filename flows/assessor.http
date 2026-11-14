@@ -1,0 +1,6 @@
+### A tela do assessor: todos os investidores, com patrimônio e o último aviso de cada um.
+# Olhe o terminal do serviço de notificações (docker compose logs -f notificacoes): quantos pedidos chegaram?
+POST http://localhost:5100/graphql
+Content-Type: application/json
+
+{"query":"query Assessor { investidores { nome patrimonio avisos(ultimos: 1) { texto } } }"}
