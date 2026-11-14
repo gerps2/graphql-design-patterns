@@ -1,0 +1,5 @@
+### O preço da PETR4 agora. Rode de novo: na maioria das vezes, volta igual
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"{ cotacao(ativo: \"PETR4\") { ativo preco variacao horario } }"}

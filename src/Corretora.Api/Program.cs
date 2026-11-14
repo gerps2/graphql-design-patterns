@@ -2,6 +2,7 @@ using System.Reflection;
 using Corretora.Api.Common.Decorators;
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Database.Interceptors;
+using Corretora.Api.Features.Cotacoes;
 using Corretora.Api.Database;
 using Corretora.Api.GraphQL.Errors;
 using Corretora.Api.Observabilidade;
@@ -49,6 +50,9 @@ if (!string.IsNullOrEmpty(redis))
         options.InstanceName = "corretora:";
     });
 builder.Services.AddHybridCache();
+// A bolsa simulada da Aula 7: os preços em memória e o relógio que muda um ativo por vez.
+builder.Services.AddSingleton<MercadoSimulado>();
+builder.Services.AddHostedService<SimuladorDeMercado>();
 builder.Services.AddMessaging(Assembly.GetExecutingAssembly());
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 

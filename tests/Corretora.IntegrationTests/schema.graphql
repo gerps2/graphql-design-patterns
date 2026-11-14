@@ -4,6 +4,7 @@ schema {
 }
 
 type Query {
+  cotacao(ativo: String!): Cotacao @cost(weight: "10")
   ultimasOrdens(quantidade: Int! = 10): [Ordem!]! @cost(weight: "10")
   usuario(id: Int!): Usuario @cost(weight: "10")
   usuarios: [Usuario!]! @cost(weight: "10")
@@ -23,6 +24,13 @@ type BusinessRuleError implements Error {
 type ConflictError implements Error {
   code: String!
   message: String!
+}
+
+type Cotacao {
+  ativo: String!
+  preco: Decimal!
+  variacao: Decimal!
+  horario: DateTime!
 }
 
 type CriarUsuarioPayload {

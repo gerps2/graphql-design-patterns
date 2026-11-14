@@ -1,4 +1,4 @@
-.PHONY: up obs down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros test test-unit test-arch test-ordem clean
+.PHONY: up obs down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -70,6 +70,12 @@ medir:
 # Faz cada pedido que dá errado uma vez e mostra o que o cliente recebe. Precisa da API de pé (make run).
 erros:
 	k6 run --quiet scripts/erros-aula-06.js
+
+# Dez clientes perguntam a cotação da PETR4 de 1 em 1 segundo e o k6 conta quantas respostas voltaram iguais.
+# Precisa da API de pé (make run). DURACAO=30s encurta.
+DURACAO ?= 60s
+polling:
+	k6 run --quiet -e DURACAO=$(DURACAO) scripts/polling-aula-07.js
 
 test:
 	dotnet test Corretora.sln
