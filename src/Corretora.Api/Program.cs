@@ -4,7 +4,9 @@ using Corretora.Api.Common.Messaging;
 using Corretora.Api.Database.Interceptors;
 using Corretora.Api.Features.Cotacoes;
 using Corretora.Api.Database;
+using Corretora.Api.Common.Events;
 using Corretora.Api.GraphQL.Errors;
+using Corretora.Api.GraphQL.Subscriptions;
 using Corretora.Api.Observabilidade;
 using FluentValidation;
 using HotChocolate;
@@ -52,6 +54,7 @@ if (!string.IsNullOrEmpty(redis))
 builder.Services.AddHybridCache();
 // A bolsa simulada da Aula 7: os preços em memória e o relógio que muda um ativo por vez.
 builder.Services.AddSingleton<MercadoSimulado>();
+builder.Services.AddSingleton<IEventPublisher, HotChocolateEventPublisher>();
 builder.Services.AddHostedService<SimuladorDeMercado>();
 builder.Services.AddMessaging(Assembly.GetExecutingAssembly());
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -69,6 +72,8 @@ builder.Services
     .AddGraphQLServer()
     .AddCorretora()
     .AddMutationConventions(applyToAllMutations: true)
+    // Subscriptions: os eventos passam por um provedor. Em memória, só esta instância da API enxerga.
+    .AddInMemorySubscriptions()
     // A interface Error do schema ganha o code, além da message.
     .AddErrorInterfaceType<ICorretoraError>()
     // Proteção: no GraphQL o cliente monta a query, e estes limites dizem até onde ele pode ir.
@@ -92,6 +97,8 @@ builder.Services
 var app = builder.Build();
 
 app.UseContagemDeConsultas();
+// A subscription chega por WebSocket: a conexão fica aberta e o servidor manda quando tiver novidade.
+app.UseWebSockets();
 app.MapGraphQL();
 
 app.Run();

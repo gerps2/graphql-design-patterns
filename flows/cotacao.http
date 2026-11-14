@@ -3,3 +3,7 @@ POST http://localhost:5000/graphql
 Content-Type: application/json
 
 {"query":"{ cotacao(ativo: \"PETR4\") { ativo preco variacao horario } }"}
+
+### A subscription não roda aqui: ela precisa de uma conexão aberta (WebSocket).
+# Abra o Nitro em http://localhost:5000/graphql e rode:
+#   subscription { cotacaoAtualizada(ativo: "PETR4") { ativo preco variacao horario } }

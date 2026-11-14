@@ -1,6 +1,7 @@
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 type Query {
@@ -14,6 +15,10 @@ type Mutation {
   enviarOrdem(input: EnviarOrdemInput!): EnviarOrdemPayload! @cost(weight: "10")
   criarUsuario(input: CriarUsuarioInput!): CriarUsuarioPayload!
     @cost(weight: "10")
+}
+
+type Subscription {
+  cotacaoAtualizada(ativo: String!): Cotacao!
 }
 
 type BusinessRuleError implements Error {
