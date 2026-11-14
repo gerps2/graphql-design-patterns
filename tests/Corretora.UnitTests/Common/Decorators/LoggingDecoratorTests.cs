@@ -1,5 +1,6 @@
 using Corretora.Api.Common.Decorators;
 using Corretora.Api.Common.Messaging;
+using Corretora.Api.Common.Results;
 using Corretora.Api.Features.Contas;
 using Corretora.Api.Features.Contas.ObterSaldo;
 using Corretora.Api.Features.Ordens.EnviarOrdem;
@@ -35,19 +36,36 @@ public class LoggingDecoratorTests
     }
 
     [Fact]
+    public async Task Handle_CommandRecusado_RegistraOCodigoDoErro()
+    {
+        // Arrange
+        var inner = Substitute.For<ICommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>>();
+        inner.Handle(Arg.Any<EnviarOrdemCommand>(), Arg.Any<CancellationToken>())
+            .Returns(ContaErrors.SaldoInsuficiente(100m, 385m));
+        var decorator = new LoggingDecorator.CommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>(inner, _loggerFactory);
+
+        // Act
+        var result = await decorator.Handle(new EnviarOrdemCommand(1, "PETR4", 10, 38.5m), CancellationToken.None);
+
+        // Assert
+        result.Error.Code.Should().Be("SALDO_INSUFICIENTE");
+        _logs.LatestRecord.Message.Should().Contain("recusado").And.Contain("SALDO_INSUFICIENTE");
+    }
+
+    [Fact]
     public async Task Handle_CommandQueLanca_RegistraOErroEDeixaAExcecaoSubir()
     {
         // Arrange
         var inner = Substitute.For<ICommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>>();
         inner.Handle(Arg.Any<EnviarOrdemCommand>(), Arg.Any<CancellationToken>())
-            .Returns<EnviarOrdemOutput>(_ => throw new SaldoInsuficienteException(100m, 385m));
+            .Returns<Result<EnviarOrdemOutput>>(_ => throw new InvalidOperationException("banco fora do ar"));
         var decorator = new LoggingDecorator.CommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>(inner, _loggerFactory);
 
         // Act
         var enviar = () => decorator.Handle(new EnviarOrdemCommand(1, "PETR4", 10, 38.5m), CancellationToken.None);
 
         // Assert
-        await enviar.Should().ThrowAsync<SaldoInsuficienteException>();
-        _logs.LatestRecord.Message.Should().Contain("SaldoInsuficienteException");
+        await enviar.Should().ThrowAsync<InvalidOperationException>();
+        _logs.LatestRecord.Message.Should().Contain("InvalidOperationException");
     }
 }

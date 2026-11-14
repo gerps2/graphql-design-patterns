@@ -31,10 +31,10 @@ public class EnviarOrdemHandlerTests
         _contas.ObterParaAlterarAsync(1, Arg.Any<CancellationToken>()).Returns(conta);
 
         // Act
-        var output = await _handler.Handle(Command(), CancellationToken.None);
+        var result = await _handler.Handle(Command(), CancellationToken.None);
 
         // Assert
-        output.Ordem!.Valor.Should().Be(385m);
+        result.Value.Ordem!.Valor.Should().Be(385m);
         conta.Saldo.Should().Be(615m);
         _ordens.Received(1).Adicionar(Arg.Is<Ordem>(o => o.Ativo == "PETR4" && o.Valor == 385m));
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -42,36 +42,36 @@ public class EnviarOrdemHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SaldoInsuficiente_LancaSemSalvar()
+    public async Task Handle_SaldoInsuficiente_DevolveSaldoInsuficienteSemSalvar()
     {
         // Arrange
         _contas.ObterParaAlterarAsync(1, Arg.Any<CancellationToken>()).Returns(Conta.Abrir(1, 100m));
 
         // Act
-        var enviar = () => _handler.Handle(Command(), CancellationToken.None);
+        var result = await _handler.Handle(Command(), CancellationToken.None);
 
         // Assert
-        await enviar.Should().ThrowAsync<SaldoInsuficienteException>();
+        result.Error.Code.Should().Be("SALDO_INSUFICIENTE");
         _ordens.DidNotReceive().Adicionar(Arg.Any<Ordem>());
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_ContaInexistente_LancaContaNaoEncontradaSemSalvar()
+    public async Task Handle_ContaInexistente_DevolveContaNaoEncontradaSemSalvar()
     {
         // Arrange
         _contas.ObterParaAlterarAsync(1, Arg.Any<CancellationToken>()).Returns((Conta?)null);
 
         // Act
-        var enviar = () => _handler.Handle(Command(), CancellationToken.None);
+        var result = await _handler.Handle(Command(), CancellationToken.None);
 
         // Assert
-        await enviar.Should().ThrowAsync<ContaNaoEncontradaException>();
+        result.Error.Code.Should().Be("CONTA_NAO_ENCONTRADA");
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_ContaAlteradaPorOutraOrdem_PropagaOErroSemCommit()
+    public async Task Handle_ContaAlteradaPorOutraOrdem_DevolveContaAlteradaSemCommit()
     {
         // Arrange
         _contas.ObterParaAlterarAsync(1, Arg.Any<CancellationToken>()).Returns(Conta.Abrir(1, 1000m));
@@ -79,10 +79,10 @@ public class EnviarOrdemHandlerTests
             .Returns<int>(_ => throw new DBConcurrencyException("a conta mudou"));
 
         // Act
-        var enviar = () => _handler.Handle(Command(), CancellationToken.None);
+        var result = await _handler.Handle(Command(), CancellationToken.None);
 
         // Assert
-        await enviar.Should().ThrowAsync<DBConcurrencyException>();
+        result.Error.Code.Should().Be("CONTA_ALTERADA");
         await _transaction.DidNotReceive().CommitAsync(Arg.Any<CancellationToken>());
     }
 }

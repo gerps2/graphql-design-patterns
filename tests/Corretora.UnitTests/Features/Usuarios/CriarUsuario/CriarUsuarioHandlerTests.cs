@@ -29,10 +29,10 @@ public class CriarUsuarioHandlerTests
         _usuarios.ExisteEmailAsync(Command.Email, Arg.Any<CancellationToken>()).Returns(false);
 
         // Act
-        var output = await _handler.Handle(Command, CancellationToken.None);
+        var result = await _handler.Handle(Command, CancellationToken.None);
 
         // Assert
-        output.Usuario!.Nome.Should().Be("Fábio Reis");
+        result.Value.Usuario!.Nome.Should().Be("Fábio Reis");
         _usuarios.Received(1).Adicionar(Arg.Is<Usuario>(u => u.Email == Command.Email));
         _contas.Received(1).Adicionar(Arg.Is<Conta>(c => c.Saldo == 0m));
         await _unitOfWork.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -40,21 +40,21 @@ public class CriarUsuarioHandlerTests
     }
 
     [Fact]
-    public async Task Handle_EmailJaCadastrado_LancaSemSalvar()
+    public async Task Handle_EmailJaCadastrado_DevolveEmailJaCadastradoSemSalvar()
     {
         // Arrange
         _usuarios.ExisteEmailAsync(Command.Email, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        var criar = () => _handler.Handle(Command, CancellationToken.None);
+        var result = await _handler.Handle(Command, CancellationToken.None);
 
         // Assert
-        await criar.Should().ThrowAsync<EmailJaCadastradoException>();
+        result.Error.Code.Should().Be("EMAIL_JA_CADASTRADO");
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task Handle_EmailGravadoPorOutroAoMesmoTempo_LancaEmailJaCadastradoSemCommit()
+    public async Task Handle_EmailGravadoPorOutroAoMesmoTempo_DevolveEmailJaCadastradoSemCommit()
     {
         // Arrange
         _usuarios.ExisteEmailAsync(Command.Email, Arg.Any<CancellationToken>()).Returns(false);
@@ -62,10 +62,10 @@ public class CriarUsuarioHandlerTests
             .Returns<int>(_ => throw new UniqueConstraintViolationException(new Exception("ix_usuarios_email")));
 
         // Act
-        var criar = () => _handler.Handle(Command, CancellationToken.None);
+        var result = await _handler.Handle(Command, CancellationToken.None);
 
         // Assert
-        await criar.Should().ThrowAsync<EmailJaCadastradoException>();
+        result.Error.Code.Should().Be("EMAIL_JA_CADASTRADO");
         await _transaction.DidNotReceive().CommitAsync(Arg.Any<CancellationToken>());
     }
 }

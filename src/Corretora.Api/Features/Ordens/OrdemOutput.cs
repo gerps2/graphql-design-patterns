@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace Corretora.Api.Features.Ordens;
 
 // O que o cliente lê de uma ordem. No schema o nome continua Ordem.

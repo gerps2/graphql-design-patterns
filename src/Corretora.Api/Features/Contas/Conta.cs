@@ -1,3 +1,5 @@
+using Corretora.Api.Common.Results;
+
 namespace Corretora.Api.Features.Contas;
 
 // O dinheiro disponível do usuário para comprar ativos.
@@ -18,11 +20,13 @@ public sealed class Conta
         new() { UsuarioId = usuarioId, Saldo = saldoInicial };
 
     // A regra mora na entidade: sem saldo, a ordem não passa daqui.
-    public void Debitar(decimal valor)
+    // Saldo insuficiente é esperado, então volta no Result, e não numa exceção.
+    public Result Debitar(decimal valor)
     {
         if (valor > Saldo)
-            throw new SaldoInsuficienteException(Saldo, valor);
+            return ContaErrors.SaldoInsuficiente(Saldo, valor);
 
         Saldo -= valor;
+        return Result.Success();
     }
 }

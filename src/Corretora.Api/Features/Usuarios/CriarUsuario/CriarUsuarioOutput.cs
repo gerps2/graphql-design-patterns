@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace Corretora.Api.Features.Usuarios.CriarUsuario;
 
 [GraphQLName("CriarUsuarioPayload")]

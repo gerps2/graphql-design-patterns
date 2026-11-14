@@ -40,7 +40,7 @@ public class CriarUsuarioTests(CorretoraApiFactory api)
     [Theory]
     [InlineData("EfCore")]
     [InlineData("Dapper")]
-    public async Task CriarUsuario_EmailJaCadastrado_RetornaConflictSemCriar(string provedor)
+    public async Task CriarUsuario_EmailJaCadastrado_RetornaEmailJaCadastradoSemCriar(string provedor)
     {
         // Arrange
         var client = api.ClientCom(provedor);
@@ -50,7 +50,7 @@ public class CriarUsuarioTests(CorretoraApiFactory api)
 
         // Assert
         json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
-        json.CodigoDoErro().Should().Be("CONFLICT");
+        json.CodigoDoErro().Should().Be("EMAIL_JA_CADASTRADO");
         (await ContarUsuarios("ana@corretora.com")).Should().Be(1);
     }
 

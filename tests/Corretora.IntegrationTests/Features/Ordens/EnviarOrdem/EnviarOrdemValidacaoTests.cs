@@ -22,7 +22,7 @@ public class EnviarOrdemValidacaoTests(CorretoraApiFactory api)
         json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
         json.CodigoDoErro().Should().Be("VALIDATION_ERROR");
         json.GetProperty("errors")[0].GetProperty("extensions").GetProperty("campos").EnumerateArray()
-            .Select(c => c.GetProperty("campo").GetString()).Should().BeEquivalentTo("Ativo", "Quantidade");
+            .Select(c => c.GetProperty("campo").GetString()).Should().BeEquivalentTo("ativo", "quantidade");
         (await api.LerSaldoEOrdensAsync(2)).Should().Be(antes);
     }
 }

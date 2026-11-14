@@ -1,12 +1,13 @@
 using System.Reflection;
 using Corretora.Api.Common.Decorators;
 using Corretora.Api.Common.Messaging;
-using Corretora.Api.Database;
 using Corretora.Api.Database.Interceptors;
+using Corretora.Api.Database;
 using Corretora.Api.GraphQL.Errors;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
+using HotChocolate;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 [assembly: Module("Corretora")]
 

@@ -1,4 +1,3 @@
-using Corretora.Api.Features.Contas;
 using Corretora.Api.GraphQL.Errors;
 using HotChocolate;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -9,29 +8,14 @@ public class CorretoraErrorFilterTests
 {
     private readonly CorretoraErrorFilter _filter = new(NullLoggerFactory.Instance);
 
-    private static IError ErroCom(Exception? exception) =>
-        ErrorBuilder.New().SetMessage("Unexpected Execution Error").SetException(exception).Build();
-
-    [Fact]
-    public void OnError_SaldoInsuficiente_TrocaPeloCodigoEPelaMensagemDaRegra()
-    {
-        // Arrange
-        var error = ErroCom(new SaldoInsuficienteException(100m, 385m));
-
-        // Act
-        var filtrado = _filter.OnError(error);
-
-        // Assert
-        filtrado.Code.Should().Be("SALDO_INSUFICIENTE");
-        filtrado.Message.Should().StartWith("Saldo insuficiente");
-        filtrado.Exception.Should().BeNull();
-    }
-
     [Fact]
     public void OnError_ExcecaoDesconhecida_ViraInternalErrorSemAMensagemInterna()
     {
         // Arrange
-        var error = ErroCom(new InvalidOperationException("Host=db-producao;Password=segredo"));
+        var error = ErrorBuilder.New()
+            .SetMessage("Unexpected Execution Error")
+            .SetException(new InvalidOperationException("Host=db-producao;Password=segredo"))
+            .Build();
 
         // Act
         var filtrado = _filter.OnError(error);

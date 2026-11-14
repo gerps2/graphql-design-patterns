@@ -5,7 +5,7 @@ namespace Corretora.Api.Common.Data;
 public interface IUnitOfWork
 {
     // Lança UniqueConstraintViolationException quando um índice único recusa a gravação.
-    // No conflito de concorrência, cada provedor lança a sua exceção e nada é gravado.
+    // No conflito de concorrência, os dois provedores lançam DBConcurrencyException e nada é gravado.
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 
     Task<ITransaction> BeginTransactionAsync(CancellationToken ct = default);

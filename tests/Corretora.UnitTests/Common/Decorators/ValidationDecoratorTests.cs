@@ -1,7 +1,7 @@
 using Corretora.Api.Common.Decorators;
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Features.Ordens.EnviarOrdem;
-using FluentValidation;
+using Corretora.Api.Common.Results;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Corretora.UnitTests.Common.Decorators;
@@ -16,17 +16,17 @@ public class ValidationDecoratorTests
             _inner, [new EnviarOrdemValidator()], NullLoggerFactory.Instance);
 
     [Fact]
-    public async Task Handle_EntradaInvalida_LancaValidationExceptionSemChamarOHandler()
+    public async Task Handle_EntradaInvalida_DevolveValidationErrorSemChamarOHandler()
     {
         // Arrange
         var command = new EnviarOrdemCommand(1, "petr", 0, 38.5m);
 
         // Act
-        var enviar = () => _decorator.Handle(command, CancellationToken.None);
+        var result = await _decorator.Handle(command, CancellationToken.None);
 
         // Assert
-        (await enviar.Should().ThrowAsync<ValidationException>())
-            .Which.Errors.Select(e => e.PropertyName).Should().BeEquivalentTo("Ativo", "Quantidade");
+        result.Error.Should().BeOfType<ValidationError>()
+            .Which.Errors.Select(e => e.Code).Should().BeEquivalentTo("Ativo", "Quantidade");
         await _inner.DidNotReceive().Handle(Arg.Any<EnviarOrdemCommand>(), Arg.Any<CancellationToken>());
     }
 

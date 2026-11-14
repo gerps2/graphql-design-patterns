@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using HotChocolate;
 
 namespace Corretora.Api.Features.Usuarios;
 

@@ -1,4 +1,5 @@
 using Corretora.Api.Common.Messaging;
+using GreenDonut;
 
 namespace Corretora.Api.Features.Transacoes.ObterTransacoes;
 

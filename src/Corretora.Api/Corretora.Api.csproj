@@ -6,6 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- O Hot Chocolate importa GreenDonut (que tem um Result<T>) e HotChocolate (que tem um Error).
+       Os dois colidem com Common.Results. Quem usa o Hot Chocolate importa o namespace no próprio arquivo. -->
+  <Target Name="TirarUsingsQueColidem" BeforeTargets="GenerateGlobalUsings;ResolveAssemblyReferences;CoreCompile">
+    <ItemGroup>
+      <Using Remove="GreenDonut" />
+      <Using Remove="HotChocolate" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.89" />
     <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />

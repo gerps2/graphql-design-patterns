@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Corretora.Api.Common.Messaging;
+using Corretora.Api.Common.Results;
 
 namespace Corretora.Api.Common.Decorators;
 
@@ -33,7 +34,7 @@ public static class LoggingDecorator
     {
         private readonly ILogger _logger = loggerFactory.CreateLogger("Pipeline");
 
-        public async Task<TResponse> Handle(TCommand command, CancellationToken ct)
+        public async Task<Result<TResponse>> Handle(TCommand command, CancellationToken ct)
         {
             // Só o nome do command: os dados podem ter CPF e e-mail, que não vão para o log.
             var name = typeof(TCommand).Name;
@@ -43,8 +44,12 @@ public static class LoggingDecorator
             try
             {
                 var response = await inner.Handle(command, ct);
-                _logger.LogInformation("Logging: {Command} terminou em {Tempo:F3} ms",
-                    name, Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                if (response.IsFailure)
+                    _logger.LogInformation("Logging: {Command} recusado em {Tempo:F3} ms com {Codigo}",
+                        name, Stopwatch.GetElapsedTime(start).TotalMilliseconds, response.Error.Code);
+                else
+                    _logger.LogInformation("Logging: {Command} terminou em {Tempo:F3} ms",
+                        name, Stopwatch.GetElapsedTime(start).TotalMilliseconds);
                 return response;
             }
             catch (Exception ex)

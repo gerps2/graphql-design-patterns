@@ -33,16 +33,16 @@ public class CacheInvalidationDecoratorTests
     }
 
     [Fact]
-    public async Task Handle_HandlerLanca_NaoMexeNoCache()
+    public async Task Handle_HandlerFalha_NaoMexeNoCache()
     {
         // Arrange
-        _inner.Handle(Command, Arg.Any<CancellationToken>()).Returns<EnviarOrdemOutput>(_ => throw new SaldoInsuficienteException(0m, 385m));
+        _inner.Handle(Command, Arg.Any<CancellationToken>()).Returns(ContaErrors.SaldoInsuficiente(0m, 385m));
 
         // Act
-        var enviar = () => _decorator.Handle(Command, CancellationToken.None);
+        var result = await _decorator.Handle(Command, CancellationToken.None);
 
         // Assert
-        await enviar.Should().ThrowAsync<SaldoInsuficienteException>();
+        result.IsFailure.Should().BeTrue();
         await _cache.DidNotReceiveWithAnyArgs().RemoveByTagAsync(default(string)!, default);
     }
 }

@@ -1,4 +1,6 @@
 using Corretora.Api.Features.Usuarios;
+using GreenDonut;
+using HotChocolate;
 
 namespace Corretora.Api.Features.Carteira.ObterCarteira;
 

@@ -1,4 +1,5 @@
 using Corretora.Api.Database;
+using GreenDonut;
 using Microsoft.EntityFrameworkCore;
 
 namespace Corretora.Api.Features.Usuarios;

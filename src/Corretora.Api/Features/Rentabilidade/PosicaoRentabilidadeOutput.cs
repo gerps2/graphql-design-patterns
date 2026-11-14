@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace Corretora.Api.Features.Rentabilidade;
 
 [GraphQLName("PosicaoRentabilidade")]

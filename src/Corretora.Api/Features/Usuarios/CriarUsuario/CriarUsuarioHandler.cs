@@ -1,5 +1,6 @@
 using Corretora.Api.Common.Data;
 using Corretora.Api.Common.Messaging;
+using Corretora.Api.Common.Results;
 using Corretora.Api.Features.Contas;
 
 namespace Corretora.Api.Features.Usuarios.CriarUsuario;
@@ -9,11 +10,11 @@ public sealed class CriarUsuarioHandler(
     IContaRepository contas,
     IUnitOfWork unitOfWork) : ICommandHandler<CriarUsuarioCommand, CriarUsuarioOutput>
 {
-    public async Task<CriarUsuarioOutput> Handle(CriarUsuarioCommand command, CancellationToken ct)
+    public async Task<Result<CriarUsuarioOutput>> Handle(CriarUsuarioCommand command, CancellationToken ct)
     {
         // A checagem cobre o caso comum. Dois cadastros ao mesmo tempo passam por ela, e quem segura é o índice único.
         if (await usuarios.ExisteEmailAsync(command.Email, ct))
-            throw new EmailJaCadastradoException(command.Email);
+            return UsuarioErrors.EmailJaCadastrado(command.Email);
 
         var usuario = Usuario.Criar(command.Nome, command.Email, command.Telefone, command.Cpf,
             new Endereco(command.Rua, command.Numero, command.Cidade));
@@ -28,7 +29,7 @@ public sealed class CriarUsuarioHandler(
         }
         catch (UniqueConstraintViolationException)
         {
-            throw new EmailJaCadastradoException(command.Email);
+            return UsuarioErrors.EmailJaCadastrado(command.Email);
         }
 
         contas.Adicionar(Conta.Abrir(usuario.Id));

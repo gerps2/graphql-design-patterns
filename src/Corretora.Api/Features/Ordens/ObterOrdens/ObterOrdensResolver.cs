@@ -1,5 +1,6 @@
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Features.Usuarios;
+using HotChocolate;
 
 namespace Corretora.Api.Features.Ordens.ObterOrdens;
 

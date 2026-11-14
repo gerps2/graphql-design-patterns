@@ -1,4 +1,5 @@
 using Corretora.Api.Features.Usuarios;
+using HotChocolate;
 
 namespace Corretora.Api.Features.Ordens.ObterDono;
 

@@ -11,23 +11,24 @@ public class ContaTests
         var conta = Conta.Abrir(1, 1000m);
 
         // Act
-        conta.Debitar(385m);
+        var result = conta.Debitar(385m);
 
         // Assert
+        result.IsSuccess.Should().BeTrue();
         conta.Saldo.Should().Be(615m);
     }
 
     [Fact]
-    public void Debitar_ValorAcimaDoSaldo_LancaSaldoInsuficienteENaoMexeNoSaldo()
+    public void Debitar_ValorAcimaDoSaldo_DevolveSaldoInsuficienteENaoMexeNoSaldo()
     {
         // Arrange
         var conta = Conta.Abrir(1, 100m);
 
         // Act
-        var debitar = () => conta.Debitar(385m);
+        var result = conta.Debitar(385m);
 
         // Assert
-        debitar.Should().Throw<SaldoInsuficienteException>().Which.Necessario.Should().Be(385m);
+        result.Error.Code.Should().Be("SALDO_INSUFICIENTE");
         conta.Saldo.Should().Be(100m);
     }
 }

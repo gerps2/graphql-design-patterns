@@ -52,7 +52,7 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
     [Theory]
     [InlineData("EfCore")]
     [InlineData("Dapper")]
-    public async Task EnviarOrdem_UsuarioSemConta_RetornaNotFound(string provedor)
+    public async Task EnviarOrdem_UsuarioSemConta_RetornaContaNaoEncontrada(string provedor)
     {
         // Arrange
         var client = api.ClientCom(provedor);
@@ -62,6 +62,6 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
 
         // Assert
         json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
-        json.CodigoDoErro().Should().Be("NOT_FOUND");
+        json.CodigoDoErro().Should().Be("CONTA_NAO_ENCONTRADA");
     }
 }

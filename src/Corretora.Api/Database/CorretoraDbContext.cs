@@ -1,3 +1,4 @@
+using System.Data;
 using Corretora.Api.Common.Data;
 using Corretora.Api.Features.Carteira;
 using Corretora.Api.Features.Contas;
@@ -33,12 +34,17 @@ public sealed class CorretoraDbContext(
     async Task<ITransaction> IUnitOfWork.BeginTransactionAsync(CancellationToken ct) =>
         new EfTransaction(await Database.BeginTransactionAsync(ct));
 
-    // Quem grava pelo IUnitOfWork recebe o índice único violado numa exceção que não é do EF Core.
+    // Quem grava pelo IUnitOfWork recebe o índice único violado e o conflito de concorrência em exceções que não são do EF Core.
     async Task<int> IUnitOfWork.SaveChangesAsync(CancellationToken ct)
     {
         try
         {
             return await SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            // A mesma exceção que o Dapper lança: o handler trata o conflito sem conhecer o EF Core.
+            throw new DBConcurrencyException("A linha mudou depois da leitura.", ex);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {

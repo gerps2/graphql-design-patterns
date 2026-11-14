@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace Corretora.Api.Features.Ordens.EnviarOrdem;
 
 // O que o caso de uso devolve. No schema é o EnviarOrdemPayload, e o Hot Chocolate não embrulha de novo.

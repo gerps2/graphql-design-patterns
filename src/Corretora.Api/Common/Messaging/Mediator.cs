@@ -1,3 +1,5 @@
+using Corretora.Api.Common.Results;
+
 namespace Corretora.Api.Common.Messaging;
 
 // Recebe a mensagem e chama o handler certo. Quem pede não conhece quem atende.
@@ -10,7 +12,7 @@ public sealed class Mediator(IServiceProvider services) : IMediator
         return handler.Handle((dynamic)query, ct);
     }
 
-    public Task<TResponse> Send<TResponse>(ICommand<TResponse> command, CancellationToken ct = default)
+    public Task<Result<TResponse>> Send<TResponse>(ICommand<TResponse> command, CancellationToken ct = default)
     {
         var handlerType = typeof(ICommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResponse));
         dynamic handler = services.GetRequiredService(handlerType);

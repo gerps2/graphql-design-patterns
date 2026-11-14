@@ -1,9 +1,10 @@
 using Corretora.Api.Common.Messaging;
+using Corretora.Api.Common.Results;
 using FluentValidation;
 
 namespace Corretora.Api.Common.Decorators;
 
-// Confere o formato do command antes do handler. Com entrada inválida, lança e o handler nem é chamado.
+// Confere o formato do command antes do handler. Com entrada inválida, devolve o erro e o handler nem é chamado.
 public static class ValidationDecorator
 {
     public sealed class CommandHandler<TCommand, TResponse>(
@@ -14,19 +15,19 @@ public static class ValidationDecorator
     {
         private readonly ILogger _logger = loggerFactory.CreateLogger("Pipeline");
 
-        public async Task<TResponse> Handle(TCommand command, CancellationToken ct)
+        public async Task<Result<TResponse>> Handle(TCommand command, CancellationToken ct)
         {
-            var failures = new List<FluentValidation.Results.ValidationFailure>();
+            var errors = new List<Error>();
             foreach (var validator in validators)
             {
                 var result = await validator.ValidateAsync(command, ct);
-                failures.AddRange(result.Errors);
+                errors.AddRange(result.Errors.Select(e => Error.Validation(e.PropertyName, e.ErrorMessage)));
             }
 
-            if (failures.Count > 0)
+            if (errors.Count > 0)
             {
                 _logger.LogInformation("Validation: {Command} recusado", typeof(TCommand).Name);
-                throw new ValidationException(failures);
+                return new ValidationError(errors);
             }
 
             _logger.LogInformation("Validation: {Command} válido", typeof(TCommand).Name);
