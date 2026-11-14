@@ -29,9 +29,11 @@ banco-zerar:
 # PROVEDOR=Dapper troca quem grava (padrão: EfCore).
 ESTRATEGIA ?= Pessimista
 PROVEDOR ?= EfCore
+# DETALHES=true põe a mensagem interna e a stack da exceção na resposta (só para ver o que vaza).
+DETALHES ?= false
 
 run:
-	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR)
+	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR) --GraphQL:DetalhesDaExcecao=$(DETALHES)
 
 # A mesma API gravando com Dapper: SQL escrito à mão, o handler não muda.
 run-dapper:

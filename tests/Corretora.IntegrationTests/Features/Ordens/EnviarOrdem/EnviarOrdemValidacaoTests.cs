@@ -6,7 +6,7 @@ namespace Corretora.IntegrationTests.Features.Ordens.EnviarOrdem;
 public class EnviarOrdemValidacaoTests(CorretoraApiFactory api)
 {
     [Fact]
-    public async Task EnviarOrdem_EntradaInvalida_RetornaErroGenericoENaoMexeNoSaldo()
+    public async Task EnviarOrdem_EntradaInvalida_RetornaValidationErrorComOsCamposENaoMexeNoSaldo()
     {
         // Arrange
         await api.RedefinirSaldoAsync(2, 5000m);
@@ -20,7 +20,9 @@ public class EnviarOrdemValidacaoTests(CorretoraApiFactory api)
 
         // Assert
         json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
-        json.GetProperty("errors")[0].GetProperty("message").GetString().Should().Be("Unexpected Execution Error");
+        json.CodigoDoErro().Should().Be("VALIDATION_ERROR");
+        json.GetProperty("errors")[0].GetProperty("extensions").GetProperty("campos").EnumerateArray()
+            .Select(c => c.GetProperty("campo").GetString()).Should().BeEquivalentTo("Ativo", "Quantidade");
         (await api.LerSaldoEOrdensAsync(2)).Should().Be(antes);
     }
 }

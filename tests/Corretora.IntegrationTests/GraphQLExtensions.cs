@@ -12,6 +12,10 @@ public static class GraphQLExtensions
         return await response.Content.ReadFromJsonAsync<JsonElement>();
     }
 
+    // O código do primeiro erro da resposta (extensions.code), como o cliente leria.
+    public static string? CodigoDoErro(this JsonElement json) =>
+        json.GetProperty("errors")[0].GetProperty("extensions").GetProperty("code").GetString();
+
     // A mesma chamada, com o número de consultas que o request mandou ao banco (header do contador).
     public static async Task<(JsonElement Json, int Consultas)> PostGraphQLContandoAsync(this HttpClient client, string query)
     {

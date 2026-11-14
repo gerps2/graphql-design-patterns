@@ -3,6 +3,7 @@ using Corretora.Api.Common.Decorators;
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Database;
 using Corretora.Api.Database.Interceptors;
+using Corretora.Api.GraphQL.Errors;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -58,7 +59,12 @@ builder.Services
     .AddCorretora()
     .AddMutationConventions(applyToAllMutations: true)
     // Cada campo da mutation ganha o seu escopo e o seu DbContext.
-    .ModifyOptions(options => options.DefaultMutationDependencyInjectionScope = DependencyInjectionScope.Resolver);
+    .ModifyOptions(options => options.DefaultMutationDependencyInjectionScope = DependencyInjectionScope.Resolver)
+    // Detalhe da exceção (mensagem interna e stack) na resposta: só quando alguém liga de propósito.
+    .ModifyRequestOptions(options => options.IncludeExceptionDetails = builder.Configuration.GetValue<bool>("GraphQL:DetalhesDaExcecao"))
+    // O filtro de erros vive nos serviços do schema. O log vem da aplicação: o AddApplicationService empresta.
+    .AddApplicationService<ILoggerFactory>()
+    .AddErrorFilter<CorretoraErrorFilter>();
 
 var app = builder.Build();
 
