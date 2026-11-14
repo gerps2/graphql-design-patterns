@@ -1,15 +1,18 @@
 using System.Data;
 using Corretora.Api.Common.Data;
+using Corretora.Api.Common.Events;
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Common.Results;
 using Corretora.Api.Features.Contas;
+using Corretora.Api.Features.Ordens.OrdemEnviada;
 
 namespace Corretora.Api.Features.Ordens.EnviarOrdem;
 
 public sealed class EnviarOrdemHandler(
     IContaRepository contas,
     IOrdemRepository ordens,
-    IUnitOfWork unitOfWork) : ICommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>
+    IUnitOfWork unitOfWork,
+    IEventPublisher eventos) : ICommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>
 {
     public async Task<Result<EnviarOrdemOutput>> Handle(EnviarOrdemCommand command, CancellationToken ct)
     {
@@ -39,6 +42,10 @@ public sealed class EnviarOrdemHandler(
         }
 
         await transaction.CommitAsync(ct);
-        return new EnviarOrdemOutput(OrdemOutput.De(ordem));
+
+        // Depois do commit: só avisa o que já está gravado. Se o aviso falhar, a ordem continua valendo.
+        var output = OrdemOutput.De(ordem);
+        await eventos.PublicarAsync(OrdemEnviadaTopico.De(command.UsuarioId), output, ct);
+        return new EnviarOrdemOutput(output);
     }
 }

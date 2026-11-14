@@ -29,6 +29,21 @@ public class SliceTests : BaseTest
         result.IsSuccessful.Should().BeTrue(Falhas(result));
     }
 
+    // Quem publica evento fala com o IEventPublisher. Só o resolver da subscription conhece o Hot Chocolate.
+    [Fact]
+    public void Features_ForaDosResolvers_NaoDependemDasSubscriptionsDoHotChocolate()
+    {
+        // Arrange
+        var tipos = Types.InAssembly(ApiAssembly).That().ResideInNamespace(FeaturesNamespace)
+            .And().DoNotHaveNameEndingWith("Resolver");
+
+        // Act
+        var result = tipos.ShouldNot().HaveDependencyOn("HotChocolate.Subscriptions").GetResult();
+
+        // Assert
+        result.IsSuccessful.Should().BeTrue(Falhas(result));
+    }
+
     [Fact]
     public void Handlers_NaoReferenciamSliceDeOutraFeature()
     {

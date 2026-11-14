@@ -1,5 +1,6 @@
 using System.Data;
 using Corretora.Api.Common.Data;
+using Corretora.Api.Common.Events;
 using Corretora.Api.Features.Contas;
 using Corretora.Api.Features.Ordens;
 using Corretora.Api.Features.Ordens.EnviarOrdem;
@@ -12,12 +13,13 @@ public class EnviarOrdemHandlerTests
     private readonly IOrdemRepository _ordens = Substitute.For<IOrdemRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly ITransaction _transaction = Substitute.For<ITransaction>();
+    private readonly IEventPublisher _eventos = Substitute.For<IEventPublisher>();
     private readonly EnviarOrdemHandler _handler;
 
     public EnviarOrdemHandlerTests()
     {
         _unitOfWork.BeginTransactionAsync(Arg.Any<CancellationToken>()).Returns(_transaction);
-        _handler = new EnviarOrdemHandler(_contas, _ordens, _unitOfWork);
+        _handler = new EnviarOrdemHandler(_contas, _ordens, _unitOfWork, _eventos);
     }
 
     private static EnviarOrdemCommand Command(decimal quantidade = 10, decimal preco = 38.5m) =>
@@ -39,6 +41,7 @@ public class EnviarOrdemHandlerTests
         _ordens.Received(1).Adicionar(Arg.Is<Ordem>(o => o.Ativo == "PETR4" && o.Valor == 385m));
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
         await _transaction.Received(1).CommitAsync(Arg.Any<CancellationToken>());
+        await _eventos.Received(1).PublicarAsync("OrdemEnviada_1", Arg.Is<OrdemOutput>(o => o.Valor == 385m), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -52,6 +55,7 @@ public class EnviarOrdemHandlerTests
 
         // Assert
         result.Error.Code.Should().Be("SALDO_INSUFICIENTE");
+        await _eventos.DidNotReceiveWithAnyArgs().PublicarAsync<OrdemOutput>(default!, default!, default);
         _ordens.DidNotReceive().Adicionar(Arg.Any<Ordem>());
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }

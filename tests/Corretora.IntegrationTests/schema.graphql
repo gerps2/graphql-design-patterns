@@ -19,6 +19,7 @@ type Mutation {
 
 type Subscription {
   cotacaoAtualizada(ativo: String!): Cotacao!
+  ordemEnviada(usuarioId: Int!): Ordem!
 }
 
 type BusinessRuleError implements Error {
