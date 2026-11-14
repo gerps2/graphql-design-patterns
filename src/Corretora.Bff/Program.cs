@@ -12,7 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient<CorretoraApiClient>(http =>
     http.BaseAddress = new Uri(builder.Configuration["Servicos:CorretoraApi"]!));
 builder.Services.AddHttpClient<NotificacoesClient>(http =>
-    http.BaseAddress = new Uri(builder.Configuration["Servicos:Notificacoes"]!));
+    http.BaseAddress = new Uri(builder.Configuration["Servicos:Notificacoes"]!))
+    .AddStandardResilienceHandler(opcoes =>
+    {
+        opcoes.AttemptTimeout.Timeout = TimeSpan.FromSeconds(2);
+        opcoes.Retry.MaxRetryAttempts = 2;
+        opcoes.Retry.Delay = TimeSpan.FromMilliseconds(200);
+        opcoes.CircuitBreaker.MinimumThroughput = 5;
+        opcoes.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(10);
+        opcoes.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(15);
+    });
 
 builder.Services
     .AddGraphQLServer()

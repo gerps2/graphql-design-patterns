@@ -1,6 +1,8 @@
 using Corretora.Bff.Servicos;
 using Corretora.Bff.Telas.Inicio;
 using GreenDonut;
+using HotChocolate;
+using Polly.CircuitBreaker;
 
 namespace Corretora.UnitTests.Bff;
 
@@ -49,4 +51,22 @@ public class InicioCamposTests
         // Assert
         avisos.Should().BeEmpty();
     }
+
+    [Theory]
+    [MemberData(nameof(Falhas))]
+    public async Task GetAvisosAsync_ServicoFora_ErroComCodigo(Exception falha)
+    {
+        // Arrange
+        var avisosByUsuarioId = Substitute.For<IAvisosByUsuarioIdDataLoader>();
+        avisosByUsuarioId.LoadAsync(1, Arg.Any<CancellationToken>()).Returns<AvisoDoServico[]?>(_ => throw falha);
+
+        // Act
+        var acao = () => InicioCampos.GetAvisosAsync(Ana, avisosByUsuarioId, CancellationToken.None);
+
+        // Assert
+        (await acao.Should().ThrowAsync<GraphQLException>())
+            .Which.Errors.Should().ContainSingle().Which.Code.Should().Be("NOTIFICACOES_INDISPONIVEL");
+    }
+
+    public static TheoryData<Exception> Falhas() => [new HttpRequestException("recusada"), new BrokenCircuitException()];
 }
