@@ -1,4 +1,4 @@
-.PHONY: up obs servicos run-notificacoes down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias tempo-real test test-unit test-arch test-ordem clean
+.PHONY: up obs servicos run-notificacoes run-bff down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias tempo-real test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -47,6 +47,10 @@ PORTA ?= 5000
 
 run:
 	dotnet run --project src/Corretora.Api --urls http://localhost:$(PORTA) -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR) --GraphQL:DetalhesDaExcecao=$(DETALHES) --GraphQL:PermitirIntrospeccao=$(INTROSPECCAO)
+
+# O BFF da corretora na porta 5100, na frente da API (5000) e das notificações (5200) (Aula 8).
+run-bff:
+	dotnet run --project src/Corretora.Bff
 
 # O serviço de notificações fora do contêiner, na porta 5200 (Aula 8).
 run-notificacoes:
