@@ -18,7 +18,9 @@ public class EnviarOrdemConcorrenciaTests(CorretoraApiFactory api)
 
         var respostas = await Task.WhenAll(Enumerable.Range(0, 40).Select(_ => client.PostGraphQLAsync(Ordem)));
 
-        var aceitas = respostas.Count(r => r.GetProperty("data").ValueKind == JsonValueKind.Object);
+        // Aceita é a resposta com a ordem preenchida. A recusada traz a ordem nula e o erro no payload.
+        var aceitas = respostas.Count(r =>
+            r.GetProperty("data").GetProperty("enviarOrdem").GetProperty("ordem").ValueKind == JsonValueKind.Object);
         var depois = await api.LerSaldoEOrdensAsync(Usuario);
         return (aceitas, depois.Saldo, depois.Ordens - antes.Ordens);
     }
@@ -64,7 +66,7 @@ public class EnviarOrdemConcorrenciaTests(CorretoraApiFactory api)
         saldoFinal.Should().BeGreaterThan(1000m - 100m * aceitas, "sem trava, gravações se sobrepõem (lost update)");
     }
 
-    // A segunda ordem falha e, como o payload não aceita nulo, o data inteiro volta nulo.
+    // A segunda ordem é recusada por saldo e traz o erro no próprio payload.
     // A primeira já foi gravada: as mutations rodam em série e cada uma tem a sua transação.
     [Fact]
     public async Task EnviarOrdem_DuasNaMesmaMutation_RodamEmSerieEAPrimeiraFicaGravada()
@@ -73,13 +75,14 @@ public class EnviarOrdemConcorrenciaTests(CorretoraApiFactory api)
         await api.RedefinirSaldoAsync(5, 1000m);
         var client = api.CreateClient();
         static string Campo(string apelido) =>
-            $$"""{{apelido}}: enviarOrdem(input: { usuarioId: 5, ativo: "HGLG11", quantidade: 1, preco: 600 }) { ordem { id } }""";
+            $$"""{{apelido}}: enviarOrdem(input: { usuarioId: 5, ativo: "HGLG11", quantidade: 1, preco: 600 }) { ordem { id } errors { __typename ... on Error { code } } }""";
 
         // Act
         var json = await client.PostGraphQLAsync($"mutation {{ {Campo("primeira")} {Campo("segunda")} }}");
 
         // Assert
-        json.GetProperty("errors")[0].GetProperty("path")[0].GetString().Should().Be("segunda");
+        json.GetProperty("data").GetProperty("primeira").GetProperty("ordem").ValueKind.Should().Be(JsonValueKind.Object);
+        json.ErroNoPayload("segunda").GetProperty("code").GetString().Should().Be("SALDO_INSUFICIENTE");
         (await api.LerSaldoEOrdensAsync(5)).Saldo.Should().Be(400m);
     }
 }

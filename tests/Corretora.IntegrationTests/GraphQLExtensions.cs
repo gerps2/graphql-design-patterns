@@ -12,6 +12,10 @@ public static class GraphQLExtensions
         return await response.Content.ReadFromJsonAsync<JsonElement>();
     }
 
+    // O primeiro erro de negócio que a mutation devolveu no payload (lista errors), como o cliente leria.
+    public static JsonElement ErroNoPayload(this JsonElement json, string mutation) =>
+        json.GetProperty("data").GetProperty(mutation).GetProperty("errors")[0];
+
     // O código do primeiro erro da resposta (extensions.code), como o cliente leria.
     public static string? CodigoDoErro(this JsonElement json) =>
         json.GetProperty("errors")[0].GetProperty("extensions").GetProperty("code").GetString();

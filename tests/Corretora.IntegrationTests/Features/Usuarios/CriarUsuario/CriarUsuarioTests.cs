@@ -12,7 +12,7 @@ public class CriarUsuarioTests(CorretoraApiFactory api)
         $$"""
         mutation { criarUsuario(input: { nome: "Fábio Reis", email: "{{email}}", telefone: "11 99999-0006",
           cpf: "222.333.444-55", rua: "Rua Nova", numero: 1, cidade: "Recife" }) {
-          usuario { id saldoDisponivel } } }
+          usuario { id saldoDisponivel } errors { __typename ... on Error { code message } } } }
         """;
 
     private async Task<int> ContarUsuarios(string email)
@@ -49,8 +49,9 @@ public class CriarUsuarioTests(CorretoraApiFactory api)
         var json = await client.PostGraphQLAsync(Criar("ana@corretora.com"));
 
         // Assert
-        json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
-        json.CodigoDoErro().Should().Be("EMAIL_JA_CADASTRADO");
+        var erro = json.ErroNoPayload("criarUsuario");
+        erro.GetProperty("__typename").GetString().Should().Be("ConflictError");
+        erro.GetProperty("code").GetString().Should().Be("EMAIL_JA_CADASTRADO");
         (await ContarUsuarios("ana@corretora.com")).Should().Be(1);
     }
 
@@ -67,8 +68,11 @@ public class CriarUsuarioTests(CorretoraApiFactory api)
         var respostas = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => client.PostGraphQLAsync(Criar(email))));
 
         // Assert
-        respostas.Count(r => r.GetProperty("data").ValueKind == JsonValueKind.Object).Should().Be(1);
-        respostas.Count(r => r.TryGetProperty("errors", out _)).Should().Be(4);
+        var criados = respostas.Count(r =>
+            r.GetProperty("data").GetProperty("criarUsuario").GetProperty("usuario").ValueKind == JsonValueKind.Object);
+        criados.Should().Be(1);
+        respostas.Count(r => r.GetProperty("data").GetProperty("criarUsuario").GetProperty("errors").ValueKind == JsonValueKind.Array)
+            .Should().Be(4);
         (await ContarUsuarios(email)).Should().Be(1);
     }
 }

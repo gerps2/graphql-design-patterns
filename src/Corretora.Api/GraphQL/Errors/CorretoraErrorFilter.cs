@@ -5,7 +5,7 @@ using HotChocolate;
 namespace Corretora.Api.GraphQL.Errors;
 
 // Todo erro que sai da API passa por aqui antes de chegar ao cliente.
-// A falha esperada já chega com código (vem do Result). O inesperado vira INTERNAL_ERROR com o traceId:
+// A falha esperada nem passa por aqui: ela vai no payload da mutation. O inesperado vira INTERNAL_ERROR com o traceId:
 // a mensagem e a stack ficam no log do servidor, e o cliente recebe só o código para levar ao suporte.
 public sealed class CorretoraErrorFilter(ILoggerFactory loggerFactory) : IErrorFilter
 {
@@ -13,8 +13,8 @@ public sealed class CorretoraErrorFilter(ILoggerFactory loggerFactory) : IErrorF
 
     public IError OnError(IError error)
     {
-        // Sem exceção, o erro é do próprio GraphQL (campo que não existe, ciclo, custo) ou do Result, e já tem código.
-        if (error.Exception is null or GraphQLException)
+        // Sem exceção, o erro é do próprio GraphQL (campo que não existe, ciclo, custo) e já tem código.
+        if (error.Exception is null)
             return error;
 
         var traceId = Activity.Current?.TraceId.ToString() ?? "sem-trace";

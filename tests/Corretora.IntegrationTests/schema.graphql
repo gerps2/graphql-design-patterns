@@ -15,8 +15,19 @@ type Mutation {
     @cost(weight: "10")
 }
 
+type BusinessRuleError implements Error {
+  code: String!
+  message: String!
+}
+
+type ConflictError implements Error {
+  code: String!
+  message: String!
+}
+
 type CriarUsuarioPayload {
   usuario: Usuario
+  errors: [CriarUsuarioError!]
 }
 
 type Endereco {
@@ -27,6 +38,23 @@ type Endereco {
 
 type EnviarOrdemPayload {
   ordem: Ordem
+  errors: [EnviarOrdemError!]
+}
+
+type InputFieldError {
+  field: String!
+  message: String!
+}
+
+type InvalidInputError implements Error {
+  code: String!
+  message: String!
+  fields: [InputFieldError!]!
+}
+
+type NotFoundError implements Error {
+  code: String!
+  message: String!
 }
 
 type Ordem {
@@ -72,6 +100,19 @@ type Usuario {
   telefone: String!
   endereco: Endereco!
 }
+
+interface Error {
+  code: String!
+  message: String!
+}
+
+union CriarUsuarioError = InvalidInputError | ConflictError
+
+union EnviarOrdemError =
+  | InvalidInputError
+  | NotFoundError
+  | BusinessRuleError
+  | ConflictError
 
 input CriarUsuarioInput {
   nome: String!

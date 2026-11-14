@@ -6,7 +6,7 @@ namespace Corretora.IntegrationTests.Features.Ordens.EnviarOrdem;
 public class EnviarOrdemTests(CorretoraApiFactory api)
 {
     private static string Ordem(int usuarioId, decimal quantidade = 10) =>
-        $$"""mutation { enviarOrdem(input: { usuarioId: {{usuarioId}}, ativo: "PETR4", quantidade: {{quantidade}}, preco: 38.5 }) { ordem { id valor } } }""";
+        $$"""mutation { enviarOrdem(input: { usuarioId: {{usuarioId}}, ativo: "PETR4", quantidade: {{quantidade}}, preco: 38.5 }) { ordem { id valor } errors { __typename ... on Error { code message } } } }""";
 
     [Theory]
     [InlineData("EfCore")]
@@ -29,7 +29,7 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
         depois.Should().Be((antes.Saldo - 385m, antes.Ordens + 1));
     }
 
-    // O filtro de erros da Aula 6 dá a cada falha conhecida o seu código.
+    // A falha esperada vem no payload, com tipo e código, e a ordem vem nula.
     [Theory]
     [InlineData("EfCore")]
     [InlineData("Dapper")]
@@ -44,8 +44,10 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
         var json = await client.PostGraphQLAsync(Ordem(2));
 
         // Assert
-        json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
-        json.CodigoDoErro().Should().Be("SALDO_INSUFICIENTE");
+        json.GetProperty("data").GetProperty("enviarOrdem").GetProperty("ordem").ValueKind.Should().Be(JsonValueKind.Null);
+        var erro = json.ErroNoPayload("enviarOrdem");
+        erro.GetProperty("__typename").GetString().Should().Be("BusinessRuleError");
+        erro.GetProperty("code").GetString().Should().Be("SALDO_INSUFICIENTE");
         (await api.LerSaldoEOrdensAsync(2)).Should().Be(antes);
     }
 
@@ -61,7 +63,8 @@ public class EnviarOrdemTests(CorretoraApiFactory api)
         var json = await client.PostGraphQLAsync(Ordem(999));
 
         // Assert
-        json.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
-        json.CodigoDoErro().Should().Be("CONTA_NAO_ENCONTRADA");
+        var erro = json.ErroNoPayload("enviarOrdem");
+        erro.GetProperty("__typename").GetString().Should().Be("NotFoundError");
+        erro.GetProperty("code").GetString().Should().Be("CONTA_NAO_ENCONTRADA");
     }
 }

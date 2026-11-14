@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Corretora.IntegrationTests.GraphQL;
 
-// O que o cliente recebe quando dá errado: cada falha com o seu código, e o inesperado sem detalhe interno.
+// O que o cliente recebe quando dá errado: a falha esperada no payload, com tipo e código; o inesperado sem detalhe interno.
 // Só as proteções que o Hot Chocolate 16 já liga sozinho (ciclo e custo) barram a query abusiva.
 [Collection(nameof(ApiCollection))]
 public class ErrosTests(CorretoraApiFactory api)
@@ -14,18 +14,19 @@ public class ErrosTests(CorretoraApiFactory api)
         $"a{i}: usuarios {{ ordens {{ dono {{ nome }} }} transacoes {{ valor }} carteira {{ saldo }} rentabilidade {{ ativo }} }}")) + " }";
 
     [Fact]
-    public async Task EnviarOrdem_SaldoInsuficiente_ChegaComCodigo()
+    public async Task EnviarOrdem_SaldoInsuficiente_ChegaNoPayloadComCodigo()
     {
         // Arrange
         var client = api.CreateClient();
 
         // Act
         var json = await client.PostGraphQLAsync("""
-            mutation { enviarOrdem(input: { usuarioId: 1, ativo: "PETR4", quantidade: 100000, preco: 38.5 }) { ordem { id } } }
+            mutation { enviarOrdem(input: { usuarioId: 1, ativo: "PETR4", quantidade: 100000, preco: 38.5 }) {
+              ordem { id } errors { __typename ... on Error { code message } } } }
             """);
 
         // Assert
-        json.CodigoDoErro().Should().Be("SALDO_INSUFICIENTE");
+        json.ErroNoPayload("enviarOrdem").GetProperty("code").GetString().Should().Be("SALDO_INSUFICIENTE");
     }
 
     [Fact]

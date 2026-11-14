@@ -59,6 +59,8 @@ builder.Services
     .AddGraphQLServer()
     .AddCorretora()
     .AddMutationConventions(applyToAllMutations: true)
+    // A interface Error do schema ganha o code, além da message.
+    .AddErrorInterfaceType<ICorretoraError>()
     // Cada campo da mutation ganha o seu escopo e o seu DbContext.
     .ModifyOptions(options => options.DefaultMutationDependencyInjectionScope = DependencyInjectionScope.Resolver)
     // Detalhe da exceção (mensagem interna e stack) na resposta: só quando alguém liga de propósito.

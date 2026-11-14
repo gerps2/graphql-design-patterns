@@ -1,14 +1,14 @@
-### 1. Saldo insuficiente: a regra de negócio diz não
+### 1. Saldo insuficiente: a regra de negócio diz não. O erro vem no payload, com tipo e código
 POST http://localhost:5000/graphql
 Content-Type: application/json
 
-{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"PETR4\", quantidade: 100000, preco: 38.5 }) { ordem { id valor } } }"}
+{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"PETR4\", quantidade: 100000, preco: 38.5 }) { ordem { id valor } errors { __typename ... on Error { code message } } } }"}
 
-### 2. Entrada inválida: ativo fora do formato e quantidade zero
+### 2. Entrada inválida: ativo fora do formato e quantidade zero. O InvalidInputError lista os campos recusados
 POST http://localhost:5000/graphql
 Content-Type: application/json
 
-{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"petr\", quantidade: 0, preco: 38.5 }) { ordem { id valor } } }"}
+{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"petr\", quantidade: 0, preco: 38.5 }) { ordem { id valor } errors { __typename ... on Error { code message } ... on InvalidInputError { fields { field message } } } } }"}
 
 ### 3. Banco fora do ar: antes, pare o Postgres com  docker compose -f deployments/docker-compose.yml stop postgres
 # Depois, suba de novo com  make up
