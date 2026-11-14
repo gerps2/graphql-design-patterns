@@ -9,6 +9,7 @@ make falha      sobe a API com uma falha ao gravar a ordem (só para a aula)
 make medir      mede as telas com o k6 (consultas ao banco e tempo; sobe a API sozinho) e abre o relatório
                 compara o passo 0 da Aula 5 com o código atual; PASSOS="0 1 2 3 4 5 6 atual" mede passo a passo
                 AULA=04 mede a escrita da Aula 4; PORTA=<outra> mede numa porta que não seja a 5000
+make erros      faz cada pedido que dá errado uma vez e mostra o que o cliente recebe (com a API de pé)
 make build      compila a solução
 make test       roda todos os testes (o Postgres e o Redis dos testes sobem sozinhos, com Testcontainers)
 make test-unit  roda só os testes de unidade, sem subir a API

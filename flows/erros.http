@@ -1,0 +1,36 @@
+### 1. Saldo insuficiente: a regra de negócio diz não
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"PETR4\", quantidade: 100000, preco: 38.5 }) { ordem { id valor } } }"}
+
+### 2. Entrada inválida: ativo fora do formato e quantidade zero
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"mutation { enviarOrdem(input: { usuarioId: 1, ativo: \"petr\", quantidade: 0, preco: 38.5 }) { ordem { id valor } } }"}
+
+### 3. Banco fora do ar: antes, pare o Postgres com  docker compose -f deployments/docker-compose.yml stop postgres
+# Depois, suba de novo com  make up
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"{ usuario(id: 1) { nome saldoDisponivel } }"}
+
+### 4. Query de dez níveis em ciclo: ordem, dono, ordens, dono... O Hot Chocolate 16 já barra (HC0087)
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"{ ultimasOrdens(quantidade: 10) { dono { ordens { dono { ordens { dono { ordens { dono { ordens { id } } } } } } } } } }"}
+
+### 5. A mesma lista pedida 30 vezes com apelidos: a análise de custo do Hot Chocolate 16 barra (HC0047)
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"{ a1: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a2: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a3: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a4: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a5: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a6: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a7: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a8: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a9: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a10: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a11: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a12: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a13: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a14: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a15: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a16: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a17: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a18: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a19: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a20: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a21: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a22: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a23: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a24: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a25: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a26: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a27: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a28: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a29: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } a30: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } } }"}
+
+### 6. Introspecção: qualquer um lê o schema inteiro, com todos os tipos e campos
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"{ __schema { types { name fields { name } } } }"}

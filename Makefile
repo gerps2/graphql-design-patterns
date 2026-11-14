@@ -1,4 +1,4 @@
-.PHONY: up down migrar banco-zerar run run-dapper falha build medir test test-unit test-arch test-ordem clean
+.PHONY: up down migrar banco-zerar run run-dapper falha build medir erros test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -54,6 +54,10 @@ PASSOS ?= 0 atual
 medir:
 	PROVEDOR=$(PROVEDOR) PASSOS="$(PASSOS)" PORTA="$(PORTA)" bash scripts/medir-aula-$(AULA).sh
 	$(ABRIR) relatorio-aula-$(AULA).html
+
+# Faz cada pedido que dá errado uma vez e mostra o que o cliente recebe. Precisa da API de pé (make run).
+erros:
+	k6 run --quiet scripts/erros-aula-06.js
 
 test:
 	dotnet test Corretora.sln
