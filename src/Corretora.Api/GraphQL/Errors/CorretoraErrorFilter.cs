@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Corretora.Api.Common.Telemetria;
 using HotChocolate.Execution;
 using HotChocolate;
 
@@ -19,6 +20,7 @@ public sealed class CorretoraErrorFilter(ILoggerFactory loggerFactory) : IErrorF
             return error;
 
         var traceId = Activity.Current?.TraceId.ToString() ?? "sem-trace";
+        CorretoraMetricas.ContarErro("INTERNAL_ERROR");
         _logger.LogError(error.Exception, "Erro inesperado em {Caminho} (traceId {TraceId})", error.Path, traceId);
 
         return ErrorBuilder.FromError(error)

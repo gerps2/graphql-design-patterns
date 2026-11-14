@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Corretora.Api.Common.Messaging;
 using Corretora.Api.Common.Results;
+using Corretora.Api.Common.Telemetria;
 
 namespace Corretora.Api.Common.Decorators;
 
@@ -45,8 +46,11 @@ public static class LoggingDecorator
             {
                 var response = await inner.Handle(command, ct);
                 if (response.IsFailure)
+                {
+                    CorretoraMetricas.ContarErro(response.Error.Code);
                     _logger.LogInformation("Logging: {Command} recusado em {Tempo:F3} ms com {Codigo}",
                         name, Stopwatch.GetElapsedTime(start).TotalMilliseconds, response.Error.Code);
+                }
                 else
                     _logger.LogInformation("Logging: {Command} terminou em {Tempo:F3} ms",
                         name, Stopwatch.GetElapsedTime(start).TotalMilliseconds);

@@ -4,6 +4,7 @@ using Corretora.Api.Common.Messaging;
 using Corretora.Api.Database.Interceptors;
 using Corretora.Api.Database;
 using Corretora.Api.GraphQL.Errors;
+using Corretora.Api.Observabilidade;
 using FluentValidation;
 using HotChocolate;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -12,6 +13,8 @@ using Microsoft.EntityFrameworkCore;
 [assembly: Module("Corretora")]
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddTelemetria();
 
 builder.Services.Configure<ConcorrenciaOptions>(builder.Configuration.GetSection("Concorrencia"));
 builder.Services.AddContagemDeConsultas();
@@ -78,7 +81,9 @@ builder.Services
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = builder.Configuration.GetValue<bool>("GraphQL:DetalhesDaExcecao"))
     // O filtro de erros vive nos serviços do schema. O log vem da aplicação: o AddApplicationService empresta.
     .AddApplicationService<ILoggerFactory>()
-    .AddErrorFilter<CorretoraErrorFilter>();
+    .AddErrorFilter<CorretoraErrorFilter>()
+    // Cada operação GraphQL vira um trace com o nome da operação, e cada resolver, um trecho dele.
+    .AddInstrumentation();
 
 var app = builder.Build();
 

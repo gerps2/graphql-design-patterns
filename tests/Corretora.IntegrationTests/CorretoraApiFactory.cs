@@ -24,6 +24,8 @@ public sealed class CorretoraApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseSetting("ConnectionStrings:Redis", _redis.GetConnectionString());
         // O SQL no terminal é para a aula. Nos testes, quem conta é o header do contador.
         builder.UseSetting("Aula:MostrarSql", "false");
+        // Sem endereço do Collector, a telemetria fica desligada nos testes.
+        builder.UseSetting("OTEL_EXPORTER_OTLP_ENDPOINT", "");
     }
 
     public async Task InitializeAsync()

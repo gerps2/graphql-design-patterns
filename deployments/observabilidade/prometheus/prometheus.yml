@@ -1,0 +1,27 @@
+# ============================================================================
+#  Prometheus — onde a MÉTRICA fica guardada
+# ----------------------------------------------------------------------------
+#  Diferente do Loki e do Jaeger (que recebem o dado empurrado pelo Collector),
+#  o Prometheus vai BUSCAR. Ele varre os alvos abaixo de tempos em tempos.
+#  Isso tem nome: "scrape" (raspagem).
+# ============================================================================
+
+global:
+  # De quanto em quanto tempo ele vai buscar. 10s é bom para um lab: gráfico
+  # com boa resolução sem inflar o banco. Em produção, 30s ou 60s é comum.
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  # As métricas da NOSSA aplicação. O app manda em OTLP para o Collector, e o
+  # Collector as expõe em :8889 — é esse endereço que o Prometheus lê.
+  # Ou seja: o app nunca fala com o Prometheus diretamente.
+  - job_name: otel-collector
+    static_configs:
+      - targets: ["otel-collector:8889"]
+
+  # O Prometheus medindo a si mesmo. Toda ferramenta de observabilidade
+  # observa a própria saúde — e é assim que você descobre que ELA é o problema.
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

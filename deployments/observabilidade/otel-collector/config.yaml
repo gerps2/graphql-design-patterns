@@ -1,0 +1,105 @@
+# ============================================================================
+#  OpenTelemetry Collector — o coração do lab
+# ----------------------------------------------------------------------------
+#  A aplicação NÃO conhece Prometheus, Loki nem Jaeger. Ela só fala OTLP com
+#  este arquivo. Quem decide para onde cada sinal vai é aqui — e trocar de
+#  ferramenta é mudar este YAML, sem tocar em uma linha de código.
+#
+#  São quatro blocos, sempre os mesmos, em qualquer Collector do mundo:
+#
+#      RECEIVERS   →   PROCESSORS   →   EXPORTERS
+#         (entra)      (trata no meio)     (sai)
+#                          ↓
+#                       SERVICE  = quem liga com quem (as "pipelines")
+# ============================================================================
+
+
+# ── 1. RECEIVERS — por onde o dado ENTRA ────────────────────────────────────
+#  "otlp" é a língua do OpenTelemetry. Dois jeitos de falar a mesma coisa:
+#    gRPC (4317) → mais eficiente, é o que os serviços Python deste lab usam
+#    HTTP (4318) → mesma informação em requisição HTTP comum
+#  0.0.0.0 = aceita de qualquer serviço da rede do compose.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+
+# ── 2. PROCESSORS — o que acontece no MEIO do caminho ───────────────────────
+#  O dado passa por aqui antes de sair. É onde se junta, filtra, enriquece e
+#  mascara campo sensível.
+processors:
+
+  # Junta o que chegou e manda de uma vez, em vez de uma requisição por span.
+  # Menos conexão, menos CPU, menos custo do outro lado.
+  batch:
+    timeout: 5s
+
+  # Trava de segurança: se o Collector passar de 75% da memória do contêiner,
+  # ele recusa dado novo em vez de morrer levando tudo junto.
+  # Telemetria nunca pode derrubar o ambiente que ela observa.
+  memory_limiter:
+    check_interval: 2s
+    limit_percentage: 75
+    spike_limit_percentage: 15
+
+
+# ── 3. EXPORTERS — para onde o dado SAI ─────────────────────────────────────
+#  Um bloco por destino. Ganhar uma ferramenta nova é acrescentar um bloco
+#  aqui e citá-lo na pipeline lá embaixo — a aplicação não muda.
+exporters:
+
+  # MÉTRICA → Prometheus. Repare na inversão: aqui o Collector apenas EXPÕE as
+  # métricas em :8889, e é o Prometheus que vem buscar (scrape). Nos outros
+  # dois, o Collector empurra.
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true       # leva service.name e service.version para os labels
+
+  # RASTRO → Jaeger, em OTLP sobre gRPC.
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true      # rede interna do compose, sem certificado
+
+  # LOG → Loki, em OTLP sobre HTTP (suportado nativamente desde o Loki 3).
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+
+  # Útil para depurar: imprime no log do Collector o que está passando.
+  # Está declarado mas não é usado em nenhuma pipeline — para ligar, basta
+  # acrescentar "debug" na lista de exporters do sinal que você quer ver.
+  debug:
+    verbosity: basic
+
+
+# ── 4. SERVICE — quem LIGA com quem ─────────────────────────────────────────
+#  Uma pipeline por sinal. Leia cada linha como uma frase: "para TRACES,
+#  receba por otlp, passe por estes processors e entregue neste exporter."
+#  A ordem dos processors importa: memory_limiter sempre primeiro.
+service:
+  pipelines:
+
+    traces:
+      receivers:  [otlp]
+      processors: [memory_limiter, batch]
+      exporters:  [otlp/jaeger]
+
+    metrics:
+      receivers:  [otlp]
+      processors: [memory_limiter, batch]
+      exporters:  [prometheus]
+
+    logs:
+      receivers:  [otlp]
+      processors: [memory_limiter, batch]
+      exporters:  [otlphttp/loki]
+
+  # Log do próprio Collector. Troque para "debug" se quiser ver cada lote saindo.
+  telemetry:
+    logs:
+      level: warn

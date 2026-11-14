@@ -1,4 +1,4 @@
-.PHONY: up down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros test test-unit test-arch test-ordem clean
+.PHONY: up obs down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -13,8 +13,12 @@ COMPOSE = docker compose -f deployments/docker-compose.yml
 up:
 	$(COMPOSE) up -d --wait
 
+# A stack de observabilidade: Collector, Prometheus, Loki, Jaeger e Grafana (http://localhost:3000).
+obs:
+	$(COMPOSE) --profile observabilidade up -d --wait
+
 down:
-	$(COMPOSE) down
+	$(COMPOSE) --profile observabilidade down
 
 migrar:
 	dotnet tool restore

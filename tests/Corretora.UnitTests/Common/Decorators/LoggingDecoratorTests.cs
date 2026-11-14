@@ -5,6 +5,7 @@ using Corretora.Api.Features.Contas;
 using Corretora.Api.Features.Contas.ObterSaldo;
 using Corretora.Api.Features.Ordens.EnviarOrdem;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using Microsoft.Extensions.Logging.Testing;
 
 namespace Corretora.UnitTests.Common.Decorators;
@@ -50,6 +51,24 @@ public class LoggingDecoratorTests
         // Assert
         result.Error.Code.Should().Be("SALDO_INSUFICIENTE");
         _logs.LatestRecord.Message.Should().Contain("recusado").And.Contain("SALDO_INSUFICIENTE");
+    }
+
+    [Fact]
+    public async Task Handle_CommandRecusado_ContaOErroNaMetricaComOCodigo()
+    {
+        // Arrange
+        using var erros = new MetricCollector<long>(null, "Corretora", "corretora.erros");
+        var inner = Substitute.For<ICommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>>();
+        inner.Handle(Arg.Any<EnviarOrdemCommand>(), Arg.Any<CancellationToken>())
+            .Returns(ContaErrors.SaldoInsuficiente(100m, 385m));
+        var decorator = new LoggingDecorator.CommandHandler<EnviarOrdemCommand, EnviarOrdemOutput>(inner, _loggerFactory);
+
+        // Act
+        await decorator.Handle(new EnviarOrdemCommand(1, "PETR4", 10, 38.5m), CancellationToken.None);
+
+        // Assert
+        erros.GetMeasurementSnapshot().Should().ContainSingle()
+            .Which.Tags["codigo"].Should().Be("SALDO_INSUFICIENTE");
     }
 
     [Fact]

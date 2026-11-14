@@ -30,5 +30,62 @@ services:
       timeout: 3s
       retries: 30
 
+  # ---------- observabilidade (Aula 6) ----------
+  # A mesma stack do lab de observabilidade: a API fala OTLP só com o Collector, e ele distribui.
+  # Sobe com make obs (perfil "observabilidade"); o make up continua subindo só o banco e o cache.
+  # As configurações estão em deployments/observabilidade, comentadas linha a linha.
+
+  # COLETA. Recebe trace, métrica e log em OTLP (4317 gRPC, 4318 HTTP) e manda cada um para o seu lugar.
+  otel-collector:
+    image: docker.io/otel/opentelemetry-collector-contrib:0.119.0
+    profiles: [observabilidade]
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes: ["./observabilidade/otel-collector/config.yaml:/etc/otel/config.yaml:ro"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on: [prometheus, loki, jaeger]
+
+  # MÉTRICA. Vai buscar no Collector (scrape) de 10 em 10 segundos.
+  prometheus:
+    image: docker.io/prom/prometheus:v3.1.0
+    profiles: [observabilidade]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    volumes: ["./observabilidade/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+
+  # LOG. Indexa só as etiquetas (serviço, nível), não o texto: guarda barato.
+  loki:
+    image: docker.io/grafana/loki:3.3.2
+    profiles: [observabilidade]
+    command: ["-config.file=/etc/loki/loki.yaml"]
+    volumes: ["./observabilidade/loki/loki.yaml:/etc/loki/loki.yaml:ro"]
+
+  # TRACE. Guarda os spans em memória e desenha a cascata de cada request (http://localhost:16686).
+  jaeger:
+    image: docker.io/jaegertracing/all-in-one:1.65.0
+    profiles: [observabilidade]
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      GOMEMLIMIT: 512MiB
+    mem_limit: 1g
+    ports: ["16686:16686"]
+
+  # A JANELA. Não guarda nada: pergunta aos três e desenha (http://localhost:3000, sem login).
+  grafana:
+    image: docker.io/grafana/grafana:11.3.3
+    profiles: [observabilidade]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_FEATURE_TOGGLES_DISABLE: dashboardScene,dashboardSceneSolo,dashboardSceneForViewers
+    volumes: ["./observabilidade/grafana/provisioning:/etc/grafana/provisioning:ro"]
+    ports: ["3000:3000"]
+    depends_on: [prometheus, loki, jaeger]
+
 volumes:
   dados:

@@ -1,0 +1,11 @@
+# O Grafana carrega, na subida, todo painel .json desta pasta. O "Corretora" já aparece pronto.
+apiVersion: 1
+
+providers:
+  - name: corretora
+    orgId: 1
+    folder: Corretora
+    type: file
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

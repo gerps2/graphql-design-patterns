@@ -1,0 +1,55 @@
+# ============================================================================
+#  Fontes de dados do Grafana — provisionadas por arquivo
+# ----------------------------------------------------------------------------
+#  O Grafana não guarda nada: ele pergunta para estas três fontes e desenha a
+#  resposta. Elas já sobem configuradas — você não precisa cadastrar nada.
+#
+#  O que faz a mágica da correlação está nos blocos jsonData abaixo: é o que
+#  transforma três ferramentas separadas em uma investigação só.
+# ============================================================================
+apiVersion: 1
+
+datasources:
+  # MÉTRICA — responde "está acontecendo alguma coisa?"
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      timeInterval: 10s
+      # Exemplars: pontos do gráfico que carregam um trace_id. É isto que
+      # permite clicar num pico de latência e cair direto no rastro daquela
+      # requisição específica.
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: jaeger
+
+  # LOG — responde "o que exatamente aconteceu?"
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      # Transforma o campo trace_id da linha de log num link clicável que abre
+      # o rastro no Jaeger. É o "pulo" do log para o trace.
+      derivedFields:
+        - name: TraceID
+          matcherType: label
+          matcherRegex: trace_id
+          url: '$${__value.raw}'
+          datasourceUid: jaeger
+
+  # RASTRO — responde "por onde passou e onde o tempo foi embora?"
+  - name: Jaeger
+    uid: jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    jsonData:
+      # O caminho de volta: de um span, ver os logs daquela mesma requisição.
+      tracesToLogsV2:
+        datasourceUid: loki
+        filterByTraceID: true

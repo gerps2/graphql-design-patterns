@@ -17,7 +17,8 @@ make test-unit  roda só os testes de unidade, sem subir a API
 make test-arch  roda só os testes de arquitetura (as regras do slice)
 make test-ordem roda só os testes da mutation enviarOrdem
 make banco-zerar  apaga o banco e recria do zero
-make down       para o Postgres
+make obs        sobe a observabilidade: Collector, Prometheus, Loki, Jaeger e Grafana (http://localhost:3000)
+make down       para tudo o que o Compose subiu
 make clean      limpa os artefatos
 ```
 
@@ -61,6 +62,25 @@ export TESTCONTAINERS_HOST_OVERRIDE=<ip da máquina WSL do Podman>
 ```
 
 Se a porta 5433 não responder em `localhost`, aponte a API para o mesmo IP com `export ConnectionStrings__Corretora="Host=<ip>;Port=5433;Database=corretora;Username=corretora;Password=corretora_dev"`. O Redis segue a mesma regra: `export ConnectionStrings__Redis="<ip>:6379"`.
+
+## Erros
+
+A partir da Aula 6, a falha esperada (saldo insuficiente, entrada inválida, conta inexistente) não é exceção: o handler devolve um `Result`, e a mutation devolve o erro no próprio payload, com tipo e código:
+
+```graphql
+mutation {
+  enviarOrdem(input: { usuarioId: 1, ativo: "PETR4", quantidade: 100000, preco: 38.5 }) {
+    ordem { id }
+    errors { __typename ... on Error { code message } }
+  }
+}
+```
+
+O inesperado (banco fora do ar, bug) chega como `INTERNAL_ERROR` com um `traceId`, sem stack. A stack fica no log do servidor, com o mesmo `traceId`. Quem decide isso é o `CorretoraErrorFilter`, em `GraphQL/Errors/`. O `make erros` mostra, num quadro, o que o cliente recebe em cada caso.
+
+## Observabilidade
+
+Com `make obs`, a API manda trace, métrica e log em OTLP para o OpenTelemetry Collector (`OTEL_EXPORTER_OTLP_ENDPOINT` no `appsettings.Development.json`). O Collector manda a métrica para o Prometheus, o log para o Loki e o trace para o Jaeger. O Grafana, em http://localhost:3000, lê os três: o painel "Corretora: GraphQL" mostra requests, tempo e erros por código, e no Explore o `traceId` de um erro abre o trace inteiro. Trocar de ferramenta (Datadog, por exemplo) é mudar o exporter no `deployments/observabilidade/otel-collector/config.yaml`, sem tocar na API.
 
 ## Cache do saldo
 
