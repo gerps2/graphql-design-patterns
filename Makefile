@@ -31,9 +31,11 @@ ESTRATEGIA ?= Pessimista
 PROVEDOR ?= EfCore
 # DETALHES=true põe a mensagem interna e a stack da exceção na resposta (só para ver o que vaza).
 DETALHES ?= false
+# INTROSPECCAO=false fecha o schema como em produção (o Nitro deixa de ver os tipos).
+INTROSPECCAO ?= true
 
 run:
-	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR) --GraphQL:DetalhesDaExcecao=$(DETALHES)
+	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Concorrencia:Estrategia=$(ESTRATEGIA) --Persistencia:Provedor=$(PROVEDOR) --GraphQL:DetalhesDaExcecao=$(DETALHES) --GraphQL:PermitirIntrospeccao=$(INTROSPECCAO)
 
 # A mesma API gravando com Dapper: SQL escrito à mão, o handler não muda.
 run-dapper:

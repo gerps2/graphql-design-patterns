@@ -13,7 +13,8 @@ public sealed class CorretoraErrorFilter(ILoggerFactory loggerFactory) : IErrorF
 
     public IError OnError(IError error)
     {
-        // Sem exceção, o erro é do próprio GraphQL (campo que não existe, ciclo, custo) e já tem código.
+        // Sem exceção, o erro é do próprio GraphQL e já vem do jeito dele.
+        // A query recusada antes de executar (profundidade, ciclo, custo) nem passa por aqui: o filtro é da execução.
         if (error.Exception is null)
             return error;
 

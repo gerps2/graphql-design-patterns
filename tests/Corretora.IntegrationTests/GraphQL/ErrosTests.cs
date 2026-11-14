@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace Corretora.IntegrationTests.GraphQL;
@@ -67,7 +68,7 @@ public class ErrosTests(CorretoraApiFactory api)
     }
 
     [Fact]
-    public async Task UltimasOrdens_QueryEmCiclo_JaEBarradaPeloHotChocolate()
+    public async Task UltimasOrdens_QueryEmCiclo_EBarradaPelaProfundidadeEPeloCiclo()
     {
         // Arrange
         var client = api.CreateClient();
@@ -76,7 +77,9 @@ public class ErrosTests(CorretoraApiFactory api)
         var json = await client.PostGraphQLAsync(QueryEmCiclo);
 
         // Assert
-        json.GetProperty("errors")[0].GetProperty("extensions").GetProperty("code").GetString().Should().Be("HC0087");
+        var mensagens = json.GetProperty("errors").EnumerateArray().Select(e => e.GetProperty("message").GetString()).ToList();
+        mensagens.Should().Contain(m => m!.Contains("execution depth of 10"));
+        mensagens.Should().Contain("Maximum allowed coordinate cycle depth was exceeded.");
     }
 
     [Fact]
@@ -93,7 +96,42 @@ public class ErrosTests(CorretoraApiFactory api)
     }
 
     [Fact]
-    public async Task Schema_Introspeccao_EstaAbertaParaQualquerUm()
+    public async Task UltimasOrdens_SeisNiveis_EBarradaPelaProfundidade()
+    {
+        // Arrange
+        var client = api.CreateClient();
+
+        // Act
+        var json = await client.PostGraphQLAsync("{ ultimasOrdens(quantidade: 5) { dono { ordens { dono { carteira { ativo } } } } } }");
+
+        // Assert
+        json.TryGetProperty("data", out var data).Should().BeFalse("a query nem chega a executar");
+        var erro = json.GetProperty("errors")[0];
+        erro.GetProperty("message").GetString().Should().Contain("execution depth of 6");
+        erro.GetProperty("extensions").GetProperty("allowedExecutionDepth").GetInt32().Should().Be(5);
+    }
+
+    [Fact]
+    public async Task TelaInicial_DentroDosLimites_PassaEInformaOCusto()
+    {
+        // Arrange
+        var client = api.CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "/graphql")
+        {
+            Content = JsonContent.Create(new { query = "{ usuarios { nome carteira { ativo saldo } transacoes { ativo valor } } }" }),
+        };
+        request.Headers.Add("GraphQL-Cost", "report");
+
+        // Act
+        var json = await (await client.SendAsync(request)).Content.ReadFromJsonAsync<JsonElement>();
+
+        // Assert
+        json.TryGetProperty("errors", out _).Should().BeFalse();
+        json.GetProperty("extensions").GetProperty("operationCost").GetProperty("fieldCost").GetDouble().Should().BeLessThan(1000);
+    }
+
+    [Fact]
+    public async Task Schema_IntrospeccaoEmDesenvolvimento_EstaAberta()
     {
         // Arrange
         var client = api.CreateClient();
@@ -103,5 +141,18 @@ public class ErrosTests(CorretoraApiFactory api)
 
         // Assert
         json.GetProperty("data").GetProperty("__schema").GetProperty("types").GetArrayLength().Should().BeGreaterThan(10);
+    }
+
+    [Fact]
+    public async Task Schema_IntrospeccaoFechada_RecusaComoEmProducao()
+    {
+        // Arrange
+        var client = api.Com(("GraphQL:PermitirIntrospeccao", "false")).CreateClient();
+
+        // Act
+        var json = await client.PostGraphQLAsync("{ __schema { types { name } } }");
+
+        // Assert
+        json.GetProperty("errors")[0].GetProperty("message").GetString().Should().Contain("Introspection");
     }
 }

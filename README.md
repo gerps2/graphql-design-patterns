@@ -3,7 +3,7 @@ Aplicação da disciplina GraphQL e Design Patterns (FIAP PosTech).
 ```
 make up         sobe o Postgres (porta 5433) e o Redis (porta 6379) no Docker
 make migrar     cria as tabelas e a carga inicial
-make run        sobe a API em http://localhost:5000 (ESTRATEGIA=SemTrava|Pessimista|Otimista; DETALHES=true mostra a exceção na resposta)
+make run        sobe a API em http://localhost:5000 (ESTRATEGIA=SemTrava|Pessimista|Otimista; DETALHES=true mostra a exceção na resposta; INTROSPECCAO=false fecha o schema)
 make run-dapper sobe a API gravando com Dapper no lugar do EF Core
 make falha      sobe a API com uma falha ao gravar a ordem (só para a aula)
 make falha-rentabilidade  sobe a API com a rentabilidade falhando: a resposta chega pela metade (só para a aula)

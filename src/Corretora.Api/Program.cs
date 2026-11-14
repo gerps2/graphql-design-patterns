@@ -64,6 +64,14 @@ builder.Services
     .AddMutationConventions(applyToAllMutations: true)
     // A interface Error do schema ganha o code, além da message.
     .AddErrorInterfaceType<ICorretoraError>()
+    // Proteção: no GraphQL o cliente monta a query, e estes limites dizem até onde ele pode ir.
+    // Profundidade: até 5 níveis de campo. A tela mais funda da corretora usa 3.
+    .AddMaxExecutionDepthRule(5)
+    // Custo: o Hot Chocolate 16 já calcula antes de executar e barra acima de 1.000. Fica escrito, e não por acaso.
+    .ModifyCostOptions(options => options.MaxFieldCost = 1_000)
+    // Introspecção (o schema inteiro para quem pedir): ligada em desenvolvimento, desligada no resto.
+    // Na 16.7 o método é DisableIntrospection; a documentação atual (16.8) já fala em AllowIntrospection.
+    .DisableIntrospection(!builder.Configuration.GetValue("GraphQL:PermitirIntrospeccao", builder.Environment.IsDevelopment()))
     // Cada campo da mutation ganha o seu escopo e o seu DbContext.
     .ModifyOptions(options => options.DefaultMutationDependencyInjectionScope = DependencyInjectionScope.Resolver)
     // Detalhe da exceção (mensagem interna e stack) na resposta: só quando alguém liga de propósito.

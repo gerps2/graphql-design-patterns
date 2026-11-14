@@ -12,6 +12,7 @@ const casos = [
   ['Entrada inválida', 'mutation { enviarOrdem(input: { usuarioId: 1, ativo: "petr", quantidade: 0, preco: 38.5 }) { ordem { id } errors { __typename ... on Error { code message } } } }'],
   ['Banco fora do ar', '{ usuario(id: 1) { nome saldoDisponivel } }'],
   ['Query em ciclo', '{ ultimasOrdens(quantidade: 10) { dono { ordens { dono { ordens { dono { ordens { dono { ordens { id } } } } } } } } } }'],
+  ['Seis níveis', '{ ultimasOrdens(quantidade: 5) { dono { ordens { dono { carteira { ativo } } } } } }'],
   ['30 apelidos (custo)', `{ ${Array.from({ length: 30 }, (_, i) => `a${i}: usuarios { ordens { dono { nome } } transacoes { valor } carteira { saldo } rentabilidade { ativo } }`).join(' ')} }`],
   ['Introspecção', '{ __schema { types { name } } }'],
 ];
