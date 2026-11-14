@@ -1,4 +1,4 @@
-.PHONY: up obs servicos run-notificacoes run-bff derrubar-notificacoes religar-notificacoes down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias tempo-real test test-unit test-arch test-ordem clean
+.PHONY: up obs servicos run-notificacoes run-bff bff derrubar-notificacoes religar-notificacoes down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros polling duas-instancias tempo-real test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -51,6 +51,10 @@ run:
 # O BFF da corretora na porta 5100, na frente da API (5000) e das notificações (5200) (Aula 8).
 run-bff:
 	dotnet run --project src/Corretora.Bff
+
+# A tela inicial do celular sem BFF (duas chamadas) e com BFF (uma), dez clientes de cada lado ao mesmo tempo (Aula 8).
+bff:
+	k6 run --quiet -e SEGUNDOS=$(SEGUNDOS) scripts/bff-aula-08.js
 
 # Derruba e religa o serviço de notificações, para ver o BFF sem ele (Aula 8).
 derrubar-notificacoes:

@@ -22,6 +22,8 @@ make test-ordem roda só os testes da mutation enviarOrdem
 make banco-zerar  apaga o banco e recria do zero
 make servicos   sobe a API (5000) e o serviço de notificações (5200) em contêineres (Aula 8)
 make run-bff    sobe o BFF na porta 5100 (Aula 8)
+make bff        a tela inicial do celular sem BFF (duas chamadas) e com BFF (uma): chamadas, bytes e tempo (com make servicos e make run-bff)
+make derrubar-notificacoes / make religar-notificacoes  para e volta o serviço de notificações, para ver o BFF sem ele
 make obs        sobe a observabilidade: Collector, Prometheus, Loki, Jaeger e Grafana (http://localhost:3000)
 make down       para tudo o que o Compose subiu
 make clean      limpa os artefatos
@@ -34,6 +36,9 @@ make clean      limpa os artefatos
 | 3 | Queries e CQRS | `feat/aula-03-queries-cqrs` |
 | 4 | Mutations, Repository e Unit of Work | `feat/aula-04-mutations-repository` |
 | 5 | Performance com DataLoader | `feat/aula-05-dataloader` |
+| 6 | Erros, middlewares e observabilidade | `feat/aula-06-erros-middlewares` |
+| 7 | Subscriptions e o padrão Observer | `feat/aula-07-subscriptions-observer` |
+| 8 | GraphQL como BFF | `feat/aula-08-graphql-bff` |
 
 Antes da primeira execução: Docker rodando, `make up` e `make migrar`.
 
@@ -90,6 +95,16 @@ Com `make obs`, a API manda trace, métrica e log em OTLP para o OpenTelemetry C
 ## Tempo real
 
 A partir da Aula 7, a API avisa o cliente pelo WebSocket, com subscriptions: `cotacaoAtualizada(ativo)` recebe cada preço novo da bolsa simulada, e `ordemEnviada(usuarioId)` recebe a ordem gravada pelo `enviarOrdem`. Quem publica fala com o `IEventPublisher` (`Common/Events`); só a implementação em `GraphQL/Subscriptions` conhece o Hot Chocolate. Com `ConnectionStrings:Redis` configurado, o provedor é o Redis, e todas as instâncias da API recebem os eventos; sem ele, o provedor fica em memória. O Redis entrega no máximo uma vez: o cliente que estava desconectado perde o evento e deve consultar de novo ao voltar.
+
+## Três serviços e um BFF
+
+A partir da Aula 8, a corretora tem três projetos em `src/`:
+
+- `Corretora.Api` (porta 5000): a API GraphQL das Aulas 1 a 7. Além das subscriptions, cada evento sai num canal do Redis (`corretora.<tópico>`) para outros serviços ouvirem (`Integracao/RedisIntegracaoPublisher`).
+- `Corretora.Notificacoes` (porta 5200): o serviço de outro time, em REST. Ouve as ordens no Redis e guarda um aviso para o investidor. `GET /notificacoes?usuarioIds=1&usuarioIds=2` devolve os avisos de vários usuários numa chamada.
+- `Corretora.Bff` (porta 5100): a porta GraphQL do app. Não referencia o projeto da API (há um teste de arquitetura para isso) e fala com os dois serviços por HTTP. A `inicio(usuarioId)` junta usuário e carteira da API com os avisos, e calcula o patrimônio; a `investidores` faz o mesmo para todos, com um DataLoader que chama as notificações em lote. O HttpClient das notificações tem timeout, nova tentativa e Circuit Breaker (`AddStandardResilienceHandler`): se o serviço cair, os avisos voltam nulos com o erro `NOTIFICACOES_INDISPONIVEL`, e o resto da tela continua.
+
+`make servicos` sobe a API e as notificações em contêineres; o BFF roda com `make run-bff`. Com `make obs`, um request do app aparece no Jaeger como um trace só, atravessando BFF, API, Postgres e notificações.
 
 ## Cache do saldo
 
