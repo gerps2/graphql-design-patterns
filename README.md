@@ -6,6 +6,7 @@ make migrar     cria as tabelas e a carga inicial
 make run        sobe a API em http://localhost:5000 (ESTRATEGIA=SemTrava|Pessimista|Otimista; DETALHES=true mostra a exceção na resposta)
 make run-dapper sobe a API gravando com Dapper no lugar do EF Core
 make falha      sobe a API com uma falha ao gravar a ordem (só para a aula)
+make falha-rentabilidade  sobe a API com a rentabilidade falhando: a resposta chega pela metade (só para a aula)
 make medir      mede as telas com o k6 (consultas ao banco e tempo; sobe a API sozinho) e abre o relatório
                 compara o passo 0 da Aula 5 com o código atual; PASSOS="0 1 2 3 4 5 6 atual" mede passo a passo
                 AULA=04 mede a escrita da Aula 4; PORTA=<outra> mede numa porta que não seja a 5000

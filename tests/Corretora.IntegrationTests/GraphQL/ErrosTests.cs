@@ -47,6 +47,25 @@ public class ErrosTests(CorretoraApiFactory api)
         extensions.TryGetProperty("exception", out _).Should().BeFalse("a stack fica no log do servidor");
     }
 
+    // Resposta parcial: a rentabilidade cai, e o resto do usuário chega. O erro aponta o caminho do campo.
+    [Fact]
+    public async Task Usuario_FalhaSoNaRentabilidade_ChegaComARentabilidadeNulaEOCaminhoDoErro()
+    {
+        // Arrange
+        var client = api.Com(("Aula:FalharRentabilidade", "true")).CreateClient();
+
+        // Act
+        var json = await client.PostGraphQLAsync("{ usuario(id: 1) { nome rentabilidade { ativo } } }");
+
+        // Assert
+        var usuario = json.GetProperty("data").GetProperty("usuario");
+        usuario.GetProperty("nome").GetString().Should().Be("Ana Souza");
+        usuario.GetProperty("rentabilidade").ValueKind.Should().Be(JsonValueKind.Null);
+        var erro = json.GetProperty("errors")[0];
+        erro.GetProperty("path").EnumerateArray().Select(p => p.GetString()).Should().Equal("usuario", "rentabilidade");
+        json.CodigoDoErro().Should().Be("INTERNAL_ERROR");
+    }
+
     [Fact]
     public async Task UltimasOrdens_QueryEmCiclo_JaEBarradaPeloHotChocolate()
     {

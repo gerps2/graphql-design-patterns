@@ -29,6 +29,9 @@ builder.Services.AddDbContext<CorretoraDbContext>((services, options) =>
 
     if (builder.Configuration.GetValue<bool>("Aula:FalharAoGravarOrdem"))
         options.AddInterceptors(new FalhaEntreGravacoesInterceptor());
+
+    if (builder.Configuration.GetValue<bool>("Aula:FalharRentabilidade"))
+        options.AddInterceptors(new FalhaNaRentabilidadeInterceptor());
 });
 // As leituras (IBanco) ficam no EF Core com AsNoTracking. A escrita usa o provedor escolhido.
 builder.Services.AddScoped<IBanco, BancoPostgres>();

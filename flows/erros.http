@@ -17,6 +17,12 @@ Content-Type: application/json
 
 {"query":"{ usuario(id: 1) { nome saldoDisponivel } }"}
 
+### Resposta parcial: suba com  make falha-rentabilidade. O nome chega, a rentabilidade vem nula e o erro diz o caminho
+POST http://localhost:5000/graphql
+Content-Type: application/json
+
+{"query":"{ usuario(id: 1) { nome rentabilidade { ativo percentualMes } } }"}
+
 ### 4. Query de dez níveis em ciclo: ordem, dono, ordens, dono... O Hot Chocolate 16 já barra (HC0087)
 POST http://localhost:5000/graphql
 Content-Type: application/json

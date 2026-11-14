@@ -1,4 +1,4 @@
-.PHONY: up down migrar banco-zerar run run-dapper falha build medir erros test test-unit test-arch test-ordem clean
+.PHONY: up down migrar banco-zerar run run-dapper falha falha-rentabilidade build medir erros test test-unit test-arch test-ordem clean
 
 ifeq ($(OS),Windows_NT)
 ABRIR = powershell -NoProfile -Command Start-Process
@@ -42,6 +42,10 @@ run-dapper:
 # Sobe a API com a falha ao gravar a ordem ligada (só para a aula).
 falha:
 	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Aula:FalharAoGravarOrdem=true
+
+# Sobe a API com a leitura da rentabilidade falhando (só para a aula): a resposta chega pela metade.
+falha-rentabilidade:
+	dotnet run --project src/Corretora.Api --urls http://localhost:5000 -- --Aula:FalharRentabilidade=true
 
 build:
 	dotnet build Corretora.sln
